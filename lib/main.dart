@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:tcm_return_pilot/presentation/splash/splash_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tcm_return_pilot/base/app_view.dart';
+import 'package:tcm_return_pilot/services/environment_service.dart';
+import 'package:tcm_return_pilot/services/storage_service.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  await Preference.init();
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'TCM Return Pilot',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const SplashScreen(),
-    );
-  }
+  // initializing Supabase
+  await Supabase.initialize(
+    url: EnvironmentService.supabaseUrl,
+    anonKey: EnvironmentService.supabaseAnonKey,
+  );
+
+  runApp(const AppView());
 }
