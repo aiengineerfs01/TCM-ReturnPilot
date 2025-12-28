@@ -2,9 +2,7 @@ import 'dart:developer';
 
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:tcm_return_pilot/presentation/authentication/welcome_consent_screen.dart';
-import 'package:tcm_return_pilot/presentation/home/home_screen.dart';
-import 'package:tcm_return_pilot/presentation/mfa/enroll_page.dart';
+import 'package:tcm_return_pilot/presentation/authentication/controller/auth_controller.dart';
 import 'package:tcm_return_pilot/services/supabase_service.dart';
 import 'package:tcm_return_pilot/widgets/custom_snackbar.dart';
 
@@ -81,8 +79,8 @@ class AuthService {
       // Step 3 — Refresh session
       await _supabase.auth.refreshSession();
 
-      // Step 4 - Navigating to Welcome Consent Screen
-      Get.toNamed(WelcomeConsentScreen.routePath);
+      // Step 4 - Route via AuthController to check profile/identity status
+      Get.find<AuthController>().handlePostMfa();
     } on AuthException catch (e) {
       AppSnackBar.show(title: 'Error', message: e.message);
     } catch (e) {
@@ -94,7 +92,9 @@ class AuthService {
   // VERIFY MFA (auto-fetch factor)
   // -------------------------
   Future<void> verifyTotpCode(String code) async {
+    final authController = Get.find<AuthController>();
     try {
+      authController.isLoading = true;
       // Step 1 — Fetch current MFA factors
       final factorsResponse = await _supabase.auth.mfa.listFactors();
 
@@ -117,8 +117,8 @@ class AuthService {
       // Step 5 — Refresh session
       await _supabase.auth.refreshSession();
 
-      // Step 6 - Navigating to Home Screen
-      Get.toNamed(HomeScreen.routePath);
+      // Step 6 - Route via AuthController to check profile/identity status
+      Get.find<AuthController>().handlePostMfa();
     } on AuthException catch (e) {
       log(e.toString());
       AppSnackBar.show(title: 'Error', message: e.message);
@@ -128,6 +128,8 @@ class AuthService {
         title: 'Error',
         message: 'Unexpected error occurred during MFA verification.',
       );
+    } finally {
+      authController.isLoading = false;
     }
   }
 

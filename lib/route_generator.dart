@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:tcm_return_pilot/presentation/authentication/signup/complete_profile_screen.dart';
 import 'package:tcm_return_pilot/presentation/authentication/email_verify_screen.dart';
 import 'package:tcm_return_pilot/presentation/authentication/forgot_password.dart';
 import 'package:tcm_return_pilot/presentation/authentication/signin_screen.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signup_screen.dart';
+import 'package:tcm_return_pilot/presentation/authentication/signup/identity_verified_view.dart';
+import 'package:tcm_return_pilot/presentation/authentication/signup/signup_screen.dart';
+import 'package:tcm_return_pilot/presentation/authentication/signup/verification_progress_view.dart';
+import 'package:tcm_return_pilot/presentation/authentication/signup/verification_rejected_view.dart';
+import 'package:tcm_return_pilot/presentation/authentication/signup/verify_identity_screen.dart';
 import 'package:tcm_return_pilot/presentation/authentication/update_password_screen.dart';
 import 'package:tcm_return_pilot/presentation/authentication/welcome_consent_screen.dart';
 import 'package:tcm_return_pilot/presentation/home/home_screen.dart';
@@ -11,6 +16,7 @@ import 'package:tcm_return_pilot/presentation/interview/interview_screen.dart';
 import 'package:tcm_return_pilot/presentation/mfa/enroll_page.dart';
 import 'package:tcm_return_pilot/presentation/mfa/verify_page.dart';
 import 'package:tcm_return_pilot/presentation/onboarding/onboarding_screen.dart';
+import 'package:tcm_return_pilot/presentation/splash/intro_screen.dart';
 import 'package:tcm_return_pilot/presentation/splash/splash_screen.dart';
 
 class RouteGenerator {
@@ -22,6 +28,8 @@ class RouteGenerator {
     final routeName = uri.path; // IGNORE query parameters
 
     switch (routeName) {
+      case IntroScreen.routePath:
+        return MaterialPageRoute(builder: (_) => const IntroScreen());
       case SplashScreen.routePath:
         return MaterialPageRoute(builder: (_) => const SplashScreen());
       case SignInScreen.routePath:
@@ -79,6 +87,31 @@ class RouteGenerator {
       case UpdatePassword.route:
         return PageTransition(
           child: const UpdatePassword(),
+          type: PageTransitionType.rightToLeft,
+        );
+      case CompleteProfileScreen.routePath:
+        return PageTransition(
+          child: const CompleteProfileScreen(),
+          type: PageTransitionType.rightToLeft,
+        );
+      case VerifyIdentityScreen.routePath:
+        return PageTransition(
+          child: const VerifyIdentityScreen(),
+          type: PageTransitionType.rightToLeft,
+        );
+      case VerificationInProgressScreen.routePath:
+        return PageTransition(
+          child: const VerificationInProgressScreen(),
+          type: PageTransitionType.rightToLeft,
+        );
+      case VerificationRejectedScreen.routePath:
+        return PageTransition(
+          child: const VerificationRejectedScreen(),
+          type: PageTransitionType.rightToLeft,
+        );
+      case IdentityVerifiedScreen.routePath:
+        return PageTransition(
+          child: const IdentityVerifiedScreen(),
           type: PageTransitionType.rightToLeft,
         );
       default:

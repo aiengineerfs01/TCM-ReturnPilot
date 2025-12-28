@@ -1,28 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
 
-class BackArrow extends StatefulWidget {
+class BackArrow extends StatelessWidget {
   final VoidCallback? onTap;
   const BackArrow({super.key, this.onTap});
 
-  @override
-  State<BackArrow> createState() => _BackArrowState();
-}
-
-class _BackArrowState extends State<BackArrow> {
-  @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
+  /// Safely pops the current route. If no route to pop, does nothing.
+  static void safePop([BuildContext? context]) {
+    if (Get.key?.currentState?.canPop() ?? false) {
+      Get.back();
+    } else if (context != null && Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+    // If nothing to pop, do nothing (prevents black screen)
   }
 
   @override
@@ -32,11 +24,7 @@ class _BackArrowState extends State<BackArrow> {
       focusColor: Colors.transparent,
       hoverColor: Colors.transparent,
       highlightColor: Colors.transparent,
-      onTap:
-          widget.onTap ??
-          () async {
-            Navigator.pop(context);
-          },
+      onTap: onTap ?? () => safePop(context),
       child: Container(
         width: 55,
         height: 55,

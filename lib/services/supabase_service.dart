@@ -8,7 +8,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tcm_return_pilot/utils/extensions.dart';
 
 /// Enum for your Supabase table names — keeps your code organized
-enum SupabaseTable { users, profile, chat_thread, chat_messages, chat_media }
+enum SupabaseTable {
+  users,
+  profiles,
+  chat_thread,
+  chat_messages,
+  chat_media,
+  identity_verifications,
+}
 
 /// A clean and professional Supabase service for basic CRUD operations
 class SupabaseService {
@@ -109,7 +116,7 @@ class SupabaseService {
   Future<String?> getUserTcmThreadId(String userId) async {
     try {
       final result = await _client
-          .from(_tableName(SupabaseTable.profile))
+          .from(_tableName(SupabaseTable.profiles))
           .select('tcm_thread_id')
           .eq('id', userId)
           .single();
@@ -125,7 +132,7 @@ class SupabaseService {
   Future<bool> saveUserTcmThreadId(String userId, String threadId) async {
     try {
       await _client
-          .from(_tableName(SupabaseTable.profile))
+          .from(_tableName(SupabaseTable.profiles))
           .update({'tcm_thread_id': threadId})
           .eq('id', userId);
 
@@ -168,6 +175,48 @@ class SupabaseService {
       final publicUrl = _client.storage
           .from("chat_media")
           .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (e) {
+      "Supabase upload error: $e".logDebug();
+      return null;
+    }
+  }
+
+  Future<String?> uploadFileToSupabaseBucket({
+    required File file,
+    required String bucketName,
+    required String folder, // e.g. "profile", "chat", "documents"
+    String? customFileName,
+  }) async {
+    try {
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        "User not logged in.".logDebug();
+        return null;
+      }
+
+      final fileName = customFileName ?? file.path.split('/').last;
+
+      // Example path:
+      // users/{uid}/profile/avatar.png
+      // users/{uid}/chat/1699999999.jpg
+      final filePath = "users/$uid/$folder/$fileName";
+
+      final result = await _client.storage
+          .from(bucketName)
+          .upload(
+            filePath,
+            File(file.path),
+            fileOptions: FileOptions(upsert: true, metadata: {'owner': uid}),
+          );
+
+      if (result.isEmpty) {
+        "Upload failed.".logDebug();
+        return null;
+      }
+
+      final publicUrl = _client.storage.from(bucketName).getPublicUrl(filePath);
 
       return publicUrl;
     } catch (e) {

@@ -1,15 +1,15 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
+import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
 import 'package:tcm_return_pilot/domain/theme/pin_theme.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signin_screen.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signup_screen.dart';
-import 'package:tcm_return_pilot/presentation/home/home_screen.dart';
-import 'package:tcm_return_pilot/presentation/mfa/widgets/enroll_mfa_guide_dialog.dart';
-import 'package:tcm_return_pilot/presentation/mfa/widgets/verify_mfa_guide_dialog.dart';
 import 'package:tcm_return_pilot/services/auth_service.dart';
-import 'package:tcm_return_pilot/utils/dialogs.dart';
-import 'package:tcm_return_pilot/widgets/custom_snackbar.dart';
+import 'package:tcm_return_pilot/widgets/app_top_bar.dart';
+import 'package:tcm_return_pilot/widgets/custom_buttons.dart';
+import 'package:tcm_return_pilot/widgets/solvquest_logo.dart';
+import 'package:get/get.dart';
+import 'package:tcm_return_pilot/presentation/authentication/controller/auth_controller.dart';
 
 class MFAVerifyPage extends StatefulWidget {
   static const route = '/mfa/verify';
@@ -25,122 +25,114 @@ class MFAVerifyPage extends StatefulWidget {
 class _MFAVerifyPageState extends State<MFAVerifyPage> {
   final AuthService _authService = AuthService();
   final TextEditingController _pinController = TextEditingController();
+  final AuthController _authController = Get.find<AuthController>();
+
+  @override
+  initState() {
+    super.initState();
+    _pinController.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
     return Scaffold(
       backgroundColor: AppTheme.of(context).primaryBackground,
-      body: SafeArea(
-        child: Column(
-          children: [
-            SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Column(
+        children: [
+          AppTopBar(),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(21, 20, 21, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GestureDetector(
-                    onTap: (){
-                      showAppDialog(context, VerifyMFAGuideDialog());
-                    },
-                    child: Icon(
-                      Icons.info_outline,
-                      size: 25,
-                      color: AppTheme.of(context).accent3,
+                  Text(
+                    'Verify MFA',
+                    style: poppinsSemiBold.copyWith(fontSize: 24),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Enter the 6-digit code from your authentication app to continue.',
+                    style: poppinsMedium.copyWith(
+                      fontSize: 14,
+                      color: theme.grey2,
                     ),
                   ),
-                  Text('Verify MFA', style: AppTheme.of(context).headlineSmall),
-                  GestureDetector(
-                    onTap: () async {
-                      var result = await _authService.signOut();
-                      if (result != null) {
-                        AppSnackBar.show(
-                          title: 'Error',
-                          message: result.toString(),
-                        );
-                      }
-                      if (context.mounted) {
-                        Navigator.pushNamed(context, SignInScreen.routePath);
-                      }
-                    },
-                    child: Icon(
-                      Icons.logout,
-                      size: 25,
-                      color: AppTheme.of(context).error,
+                  const SizedBox(height: 40),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Pinput(
+                      length: 6,
+                      controller: _pinController,
+                      keyboardType: TextInputType.number,
+                      defaultPinTheme: AppPinThemes.defaultTheme(context),
+                      focusedPinTheme: AppPinThemes.focusedTheme(context),
+                      submittedPinTheme: AppPinThemes.submittedTheme(context),
+                      separatorBuilder: (index) => const SizedBox(width: 12),
+                      onCompleted: (value) async {
+                        // await _authService.verifyTotpCode(value);
+                      },
                     ),
                   ),
+
+                  const SizedBox(height: 35),
+
+                  Obx(() => PrimaryButton(
+                        title: 'Verify',
+                        isLoading: _authController.isLoading,
+                        onTap: _pinController.text.length < 6
+                            ? null
+                            : () async {
+                                await _authService.verifyTotpCode(
+                                  _pinController.text,
+                                );
+                              },
+                      )),
+
+                  const SizedBox(height: 20),
+
+                  Align(
+                    alignment: Alignment.center,
+                    child: RichText(
+                      textAlign: TextAlign.start,
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text:
+                                'By proceeding you are indicating that you have read and agree to our ',
+                            style: poppinsRegular.copyWith(
+                              fontSize: 14,
+                              color: theme.grey4,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'consent terms',
+                            style: poppinsSemiBold.copyWith(
+                              fontSize: 15,
+                              color: theme.grey4,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Spacer(),
+
+                  Center(child: SolvquestLogo(height: 45)),
+                  const SizedBox(height: 30),
                 ],
               ),
             ),
-            Expanded(
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 32,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.verified_user_outlined,
-                        size: 72,
-                        color: AppTheme.of(context).primary,
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Verification Required',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onBackground,
-                            ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Enter the 6-digit code from your authentication app to continue.',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).hintColor,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: AppTheme.of(context).primaryBackground,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Pinput(
-                          length: 6,
-                          controller: _pinController,
-                          keyboardType: TextInputType.number,
-                          defaultPinTheme: AppPinThemes.defaultTheme(context),
-                          focusedPinTheme: AppPinThemes.focusedTheme(context),
-                          submittedPinTheme: AppPinThemes.submittedTheme(
-                            context,
-                          ),
-                          onCompleted: (value) async {
-                            await _authService.verifyTotpCode(value);
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

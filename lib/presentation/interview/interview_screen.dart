@@ -8,7 +8,6 @@ import 'package:tcm_return_pilot/models/chat_message.dart';
 import 'package:tcm_return_pilot/presentation/interview/controller/interview_controller.dart';
 import 'package:tcm_return_pilot/presentation/interview/widgets/chat_bubble.dart';
 import 'package:tcm_return_pilot/presentation/interview/widgets/typing_indicator.dart';
-import 'package:tcm_return_pilot/services/supabase_service.dart';
 import 'package:tcm_return_pilot/utils/extensions.dart';
 import 'package:tcm_return_pilot/widgets/app_logo.dart';
 import 'package:tcm_return_pilot/widgets/back_arrow.dart';
@@ -252,7 +251,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                 controller: textController,
                 onSubmit: canSend
                     ? (_) async {
-                        await controller.handleUserResponse(
+                        controller.handleUserResponse(
                           textController.text.trim(),
                           files: List.of(uploadedFiles),
                         );
@@ -269,7 +268,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
             GestureDetector(
               onTap: canSend
                   ? () async {
-                      await controller.handleUserResponse(
+                      controller.handleUserResponse(
                         textController.text.trim(),
                         files: List.of(uploadedFiles),
                       );

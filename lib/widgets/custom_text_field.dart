@@ -60,14 +60,14 @@ class CustomTextField extends StatelessWidget {
     this.verticalMargin = 0,
     this.contentPadding = const EdgeInsets.symmetric(
       horizontal: 20,
-      vertical: 15,
+      vertical: 13,
     ),
     this.suffixText = '',
     this.validator,
     this.onTap,
     this.prefix,
     this.maxLines = 1,
-    this.radius = 25,
+    this.radius = 13,
     this.keyBoardType = TextInputType.text,
     this.inputFormatters = const [],
     this.textInputAction = TextInputAction.next,
@@ -130,13 +130,13 @@ class CustomTextField extends StatelessWidget {
                   onPressed: () {
                     if (onSuffixIconPressed != null) onSuffixIconPressed!();
                   },
-                  icon: Icon(suffixIcon, size: 20),
+                  icon: Icon(suffixIcon, size: 20, color: AppTheme.of(context).appGrey),
                 )
               : null,
           prefixIcon: prefixIcon,
           filled: true,
           isDense: true,
-          fillColor: fillColor ?? AppTheme.of(context).primaryBackground,
+          fillColor: fillColor ?? Colors.transparent,
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(radius),
             borderSide: const BorderSide(color: Colors.red),

@@ -16,7 +16,7 @@ class InterviewController extends GetxController {
   late OpenAIClient _openai;
   final RxList<ChatMessage> messages = <ChatMessage>[].obs;
   final RxBool isTyping = false.obs;
-  final RxBool chatLoading = true.obs;
+  final RxBool chatLoading = false.obs;
 
   final SupabaseService supabase = SupabaseService();
   final userId = SupabaseService.client.auth.currentUser!.id;
@@ -41,10 +41,9 @@ class InterviewController extends GetxController {
     /// Initialize or retrieve existing thread
     await _initializeThread();
 
-    /// Load existing thread messages
-    await loadExistingThreadMessages();
-
-    chatLoading.value = false;
+    /// IMPORTANT: If this is a new thread → initial message sent already
+    /// Now load messages AFTER initial message exists
+    // await loadExistingThreadMessages();
   }
 
   Future<void> createSupbaseChatThread() async {
@@ -106,6 +105,18 @@ class InterviewController extends GetxController {
     }
   }
 
+  Future<void> loadExistingData() async {
+    try {
+      chatLoading.value = true;
+      await getSupabaseChatThread();
+      await loadExistingThreadMessages();
+    } catch (e) {
+      log("❌ Error loading existing data: $e");
+    } finally {
+      chatLoading.value = false;
+    }
+  }
+
   Future<void> _initializeThread() async {
     try {
       // 1. Try local threadId first
@@ -113,7 +124,7 @@ class InterviewController extends GetxController {
       if (localThread.isNotEmpty) {
         _threadId = localThread;
         log("📌 Using local stored thread: $_threadId");
-        await getSupabaseChatThread();
+        await loadExistingData();
         return;
       }
 
@@ -127,7 +138,7 @@ class InterviewController extends GetxController {
         await Preference.setTcmThreadId(remoteId);
 
         log("📌 Loaded tcm_thread_id from Supabase: $_threadId");
-        await getSupabaseChatThread();
+        await loadExistingData();
         return;
       }
 
@@ -225,11 +236,7 @@ class InterviewController extends GetxController {
   /// Send welcome message to kick off the interview
   Future<void> _sendInitialMessage() async {
     final userInitialText = "Hello!";
-    await createSupbaseChatMessage(
-      content: userInitialText,
-      sender: SenderType.user,
-    );
-    handleUserResponse(userInitialText);
+    await handleUserResponse(userInitialText);
   }
 
   void testAddMessage(List<PlatformFile> files) {

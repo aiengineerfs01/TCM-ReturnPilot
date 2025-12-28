@@ -15,6 +15,7 @@ class PrimaryButton extends StatelessWidget {
   final double width;
   final double height;
   final double borderRadius;
+  final bool isLoading;
 
   const PrimaryButton({
     super.key,
@@ -30,6 +31,7 @@ class PrimaryButton extends StatelessWidget {
     this.width = double.infinity,
     this.height = 50,
     this.borderRadius = 25,
+    this.isLoading = false,
   });
 
   @override
@@ -45,15 +47,23 @@ class PrimaryButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         side: BorderSide(color: borderColor),
       ),
-      onPressed: onTap,
-      child:
-          child ??
-          Text(
-            title ?? '',
-            style:
-                textStyle ??
-                poppinsMedium.copyWith(color: textColor, fontSize: 14),
-          ),
+      onPressed: isLoading ? null : onTap,
+      child: isLoading
+          ? const SizedBox(
+              height: 24,
+              width: 24,
+              child: CircularProgressIndicator.adaptive(
+                strokeWidth: 2.5,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+          : child ??
+              Text(
+                title ?? '',
+                style:
+                    textStyle ??
+                    poppinsMedium.copyWith(color: textColor, fontSize: 14),
+              ),
     );
   }
 }

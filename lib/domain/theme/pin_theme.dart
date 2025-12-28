@@ -6,7 +6,7 @@ import 'package:pinput/pinput.dart'; // if you’re using the Pinput package
 class AppPinThemes {
   static PinTheme defaultTheme(BuildContext context) => PinTheme(
     width: 50,
-    height: 50,
+    height: 48,
     textStyle: AppTheme.of(context).titleMedium,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(8),
@@ -16,21 +16,21 @@ class AppPinThemes {
 
   static PinTheme focusedTheme(BuildContext context) => PinTheme(
     width: 50,
-    height: 50,
+    height: 48,
     textStyle: AppTheme.of(context).titleMedium,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: AppTheme.of(context).primary, width: 2),
+      border: Border.all(color: AppTheme.of(context).appGreen, width: 2),
     ),
   );
 
   static PinTheme submittedTheme(BuildContext context) => PinTheme(
     width: 50,
-    height: 50,
+    height: 48,
     textStyle: AppTheme.of(context).titleMedium,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: AppTheme.of(context).primary),
+      border: Border.all(color: AppTheme.of(context).appGreen),
     ),
   );
 }

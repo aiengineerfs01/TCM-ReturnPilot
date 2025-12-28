@@ -6,6 +6,7 @@ abstract class _Key {
   static const String refreshAccessToken = 'refreshAccessToken';
   static const String appLanguage = 'appLanguage';
   static const String tcmThreadId = 'tcm_thread_id';
+  static const String rememberedEmail = 'remembered_email';
   static Map<String, dynamic> defaultValues = {
     _Key.accessToken: '',
     _Key.refreshAccessToken: '',
@@ -85,7 +86,28 @@ class Preference {
     return _instance.getBool(themeStatus) ?? false;
   }
 
+  // -------------------------
+  // REMEMBER ME (email only)
+  // -------------------------
+  static String get rememberedEmail {
+    return _instance.getString(_Key.rememberedEmail) ?? '';
+  }
+
+  static Future<void> setRememberedEmail(String email) async {
+    await _instance.setString(_Key.rememberedEmail, email);
+  }
+
+  static Future<void> clearRememberedEmail() async {
+    await _instance.remove(_Key.rememberedEmail);
+  }
+
+  /// Clears all preferences except remembered email (for logout)
   static Future<bool> clear() async {
-    return await _instance.clear();
+    final email = rememberedEmail; // preserve
+    final result = await _instance.clear();
+    if (email.isNotEmpty) {
+      await setRememberedEmail(email); // restore
+    }
+    return result;
   }
 }

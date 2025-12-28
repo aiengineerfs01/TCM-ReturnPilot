@@ -5,7 +5,9 @@ import 'package:tcm_return_pilot/presentation/authentication/controller/auth_con
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
 import 'package:tcm_return_pilot/presentation/home/home_screen.dart';
 import 'package:tcm_return_pilot/widgets/app_logo.dart';
+import 'package:tcm_return_pilot/widgets/app_top_bar.dart';
 import 'package:tcm_return_pilot/widgets/custom_buttons.dart';
+import 'package:tcm_return_pilot/widgets/safe_pop_scope.dart';
 
 class WelcomeConsentScreen extends StatefulWidget {
   const WelcomeConsentScreen({super.key});
@@ -48,28 +50,28 @@ class _WelcomeConsentScreenState extends State<WelcomeConsentScreen> {
   Widget build(BuildContext context) {
     final theme = AppTheme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.primaryBackground,
-      body: SafeArea(
-        child: SingleChildScrollView(
+    return SafePopScope(
+      child: Scaffold(
+        backgroundColor: theme.primaryBackground,
+        body: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 30),
-              // App Logo
+              AppTopBar(),
+              const SizedBox(height: 27),
+
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: AppLogo(color: theme.primary, width: 300),
-              ),
-              Text(
-                'Your trusted partner for seamless tax filing.',
-                style: poppinsRegular.copyWith(
-                  fontSize: 14,
-                  color: theme.accent3,
+                padding: const EdgeInsets.symmetric(horizontal: 25),
+                child: Text(
+                  'Terms and Conditions',
+                  style: poppinsBold.copyWith(
+                    fontSize: 25,
+                    color: theme.primaryText,
+                  ),
                 ),
-                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 32),
+
+              const SizedBox(height: 8),
 
               // --- Intro to Tax Process Section ---
               Container(

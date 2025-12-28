@@ -1,16 +1,25 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tcm_return_pilot/models/identity_verification_model.dart';
 import 'package:tcm_return_pilot/models/profile_model.dart';
 import 'package:tcm_return_pilot/presentation/authentication/signin_screen.dart';
+import 'package:tcm_return_pilot/presentation/authentication/signup/complete_profile_screen.dart';
+import 'package:tcm_return_pilot/presentation/authentication/signup/verification_progress_view.dart';
+import 'package:tcm_return_pilot/presentation/authentication/signup/verification_rejected_view.dart';
+import 'package:tcm_return_pilot/presentation/authentication/signup/verify_identity_screen.dart';
 import 'package:tcm_return_pilot/presentation/authentication/welcome_consent_screen.dart';
 import 'package:tcm_return_pilot/presentation/home/home_screen.dart';
 import 'package:tcm_return_pilot/presentation/mfa/enroll_page.dart';
 import 'package:tcm_return_pilot/presentation/mfa/verify_page.dart';
 import 'package:tcm_return_pilot/presentation/onboarding/onboarding_screen.dart';
 import 'package:tcm_return_pilot/services/auth_service.dart';
+import 'package:tcm_return_pilot/services/identity_verification_service.dart';
+import 'package:tcm_return_pilot/services/storage_service.dart';
 import 'package:tcm_return_pilot/services/supabase_service.dart';
+import 'package:tcm_return_pilot/utils/enums.dart';
 import 'package:tcm_return_pilot/utils/snackbar.dart';
 
 class AuthController extends GetxController {
@@ -23,6 +32,10 @@ class AuthController extends GetxController {
   bool _isInitialized = false;
 
   static final SupabaseClient _supabaseClient = SupabaseService.client;
+
+  // Add service instance
+  final IdentityVerificationService _verificationService =
+      IdentityVerificationService();
 
   // Getters
   bool get isLoading => _isLoading.value;
@@ -53,7 +66,7 @@ class AuthController extends GetxController {
       } else {
         if (_isManualLogout) {
           _isManualLogout = false; // reset flag
-          return; // 👈 don't show expired message for manual logout
+          return; // don't show expired message for manual logout
         }
 
         // Session expired or user signed out
@@ -74,8 +87,8 @@ class AuthController extends GetxController {
 
       if (currentSession != null) {
         user.value = currentSession.user;
-
-        await checkSignUpConsent();
+        // Session exists (AAL2) — go through profile/identity checks
+        await handlePostMfa();
       } else {
         Get.offAllNamed(OnboardingScreen.routePath);
       }
@@ -101,8 +114,6 @@ class AuthController extends GetxController {
 
       _showSuccess('Login successful!');
       await handlePostLogin();
-      //Get.toNamed(MFAVerifyPage.routePath);
-      //await checkSignUpConsent();
     } catch (e) {
       _showError(e.toString());
     } finally {
@@ -114,7 +125,7 @@ class AuthController extends GetxController {
   // ------------------------------
   // HANDLE POST LOGIN
   // ------------------------------
-
+  /// Called after password login (AAL1). Routes to MFA first.
   Future<void> handlePostLogin() async {
     final user = _supabaseClient.auth.currentUser;
     if (user == null) {
@@ -122,14 +133,57 @@ class AuthController extends GetxController {
       return;
     }
 
+    // MFA FIRST — ensures AAL2 session before anything else
     final isMFAEnabled = await isUserMFAEnabled();
-
     if (isMFAEnabled) {
-      // 🔐 Go to MFA verification screen
       Get.offAllNamed(MFAVerifyPage.routePath);
     } else {
-      // 🧩 User hasn’t enrolled yet, go to enroll screen
       Get.offAllNamed(MFAEnrollPage.route);
+    }
+  }
+
+  // ------------------------------
+  // HANDLE POST MFA
+  // ------------------------------
+  /// Called after MFA verification succeeds (AAL2). Checks profile/identity status.
+  Future<void> handlePostMfa() async {
+    final user = _supabaseClient.auth.currentUser;
+    if (user == null) {
+      Get.offAllNamed(SignInScreen.routePath);
+      return;
+    }
+
+    final profiles = await supabaseClient.getData(
+      table: SupabaseTable.profiles,
+      column: 'id',
+      value: user.id,
+    );
+
+    if (profiles.isEmpty) {
+      Get.offAllNamed(OnboardingScreen.routePath);
+      return;
+    }
+
+    ProfileModel profile = ProfileModel.fromJson(profiles[0]);
+
+    if (profile.isProfileCompleted == false) {
+      Get.offAllNamed(CompleteProfileScreen.routePath);
+    } else if (profile.identityVerificationStatus ==
+        IdentityVerificationStatus.notStarted) {
+      Get.offAllNamed(VerifyIdentityScreen.routePath);
+    } else if (profile.identityVerificationStatus ==
+        IdentityVerificationStatus.pending) {
+      Get.offAllNamed(VerificationInProgressScreen.routePath);
+    } else if (profile.identityVerificationStatus ==
+        IdentityVerificationStatus.rejected) {
+      Get.offAllNamed(VerificationRejectedScreen.routePath);
+    } else {
+      // Approved — consent check or home
+      if (profile.checkedConsent == true) {
+        Get.offAllNamed(HomeScreen.routePath);
+      } else {
+        Get.offAllNamed(WelcomeConsentScreen.routePath);
+      }
     }
   }
 
@@ -164,19 +218,10 @@ class AuthController extends GetxController {
       if (response.user != null) {
         currentUser = response.user;
 
-        await createProfile(
-          userId: currentUser?.id ?? '',
-          email: currentUser?.email ?? '',
-          displayName: displayName,
-        );
-
-        //_showSuccess('Account created successfully!');
         _showSuccess(
           'Account created successfully! A verification email has been sent to your email address.',
         );
-        //Get.toNamed(MFAEnrollPage.routePath);
         Get.toNamed(SignInScreen.routePath);
-        //Get.offAllNamed(WelcomeConsentScreen.routePath);
       } else {
         _showError('Signup failed. Please try again.');
       }
@@ -277,7 +322,7 @@ class AuthController extends GetxController {
         'created_at': DateTime.now().toIso8601String(),
       };
 
-      await _supabaseClient.from(SupabaseTable.profile.name).insert(data);
+      await _supabaseClient.from(SupabaseTable.profiles.name).insert(data);
     } on PostgrestException catch (e) {
       log('Error creating profile: ${e.message}');
     } catch (e) {
@@ -296,7 +341,7 @@ class AuthController extends GetxController {
     try {
       final data = {'checked_consent': checkedConsent};
       await _supabaseClient
-          .from(SupabaseTable.profile.name)
+          .from(SupabaseTable.profiles.name)
           .update(data)
           .eq('id', userId);
     } on PostgrestException catch (e) {
@@ -308,13 +353,188 @@ class AuthController extends GetxController {
   }
 
   // ------------------------------
+  // Complete Profile
+  // ------------------------------
+
+  Future<void> completeProfile(
+    String firstName,
+    String lastName,
+    String address,
+    String phone,
+    File? profileImage,
+  ) async {
+    try {
+      isLoading = true;
+      String? profleImageUrl = '';
+      if (profileImage != null) {
+        profleImageUrl = await supabaseClient.uploadFileToSupabaseBucket(
+          file: profileImage,
+          bucketName: 'profile_media',
+          folder: 'profile',
+        );
+      }
+      final data = {
+        'first_name': firstName,
+        'last_name': lastName,
+        'address': address,
+        'phone': phone,
+        'profile_image': profleImageUrl,
+        'is_profile_completed': true,
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+      await _supabaseClient
+          .from(SupabaseTable.profiles.name)
+          .update(data)
+          .eq('id', currentUser?.id.toString() ?? '');
+
+      Get.toNamed(VerifyIdentityScreen.routePath);
+    } catch (e) {
+      log(e.toString());
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  // ------------------------------
+  // SUBMIT IDENTITY VERIFICATION
+  // ------------------------------
+  Future<void> submitIdentityVerification({
+    required File frontId,
+    required File backId,
+    required File selfie,
+  }) async {
+    try {
+      isLoading = true;
+
+      final result = await _verificationService.submitVerification(
+        frontId: frontId,
+        backId: backId,
+        selfie: selfie,
+      );
+
+      if (result.isSuccess) {
+        _showSuccess(result.message ?? 'Verification submitted successfully!');
+        Get.offAllNamed(VerificationInProgressScreen.routePath);
+      } else {
+        _showError(result.errorMessage ?? 'Failed to submit verification');
+      }
+    } catch (e) {
+      log('Error in submitIdentityVerification: $e');
+      _showError('An error occurred while submitting verification');
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  // ------------------------------
+  // GET VERIFICATION STATUS
+  // ------------------------------
+  Future<IdentityVerificationModel?> getVerificationStatus() async {
+    try {
+      return await _verificationService.getVerificationStatus();
+    } catch (e) {
+      log('Error getting verification status: $e');
+      return null;
+    }
+  }
+
+  // ------------------------------
+  // RESUBMIT VERIFICATION
+  // ------------------------------
+  Future<void> resubmitVerification({
+    File? frontId,
+    File? backId,
+    File? selfie,
+  }) async {
+    try {
+      isLoading = true;
+
+      final result = await _verificationService.resubmitVerification(
+        frontId: frontId,
+        backId: backId,
+        selfie: selfie,
+      );
+
+      if (result.isSuccess) {
+        _showSuccess(
+          result.message ?? 'Verification resubmitted successfully!',
+        );
+        Get.offAllNamed(VerificationInProgressScreen.routePath);
+      } else {
+        _showError(result.errorMessage ?? 'Failed to resubmit verification');
+      }
+    } catch (e) {
+      log('Error in resubmitVerification: $e');
+      _showError('An error occurred while resubmitting verification');
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  // ------------------------------
+  // CONTINUE FROM VERIFICATION IN PROGRESS
+  // ------------------------------
+  Future<void> onVerificationProgressContinue() async {
+    try {
+      isLoading = true;
+
+      final model = await getVerificationStatus();
+      if (model == null) {
+        _showError('Unable to fetch verification status.');
+        return;
+      }
+
+      switch (model.status) {
+        case IdentityVerificationStatus.pending:
+          _showSuccess('Still under review. Please check back later.');
+          break;
+
+        case IdentityVerificationStatus.approved:
+          // Approved — go to consent or home
+          final profiles = await supabaseClient.getData(
+            table: SupabaseTable.profiles,
+            column: 'id',
+            value: currentUser?.id,
+          );
+          if (profiles.isNotEmpty) {
+            ProfileModel profile = ProfileModel.fromJson(profiles[0]);
+            if (profile.checkedConsent == true) {
+              Get.offAllNamed(HomeScreen.routePath);
+            } else {
+              Get.offAllNamed(WelcomeConsentScreen.routePath);
+            }
+          } else {
+            Get.offAllNamed(HomeScreen.routePath);
+          }
+          break;
+
+        case IdentityVerificationStatus.rejected:
+          // Show rejection screen with reason
+          Get.offAllNamed(VerificationRejectedScreen.routePath);
+          break;
+
+        case IdentityVerificationStatus.notStarted:
+          // Let user start verification
+          Get.offAllNamed(VerifyIdentityScreen.routePath);
+          break;
+      }
+    } catch (e) {
+      log('onVerificationProgressContinue error: $e');
+      _showError('Failed to continue. Try again.');
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  // ------------------------------
   // Check SignUp Consent
   // ------------------------------
 
   Future<void> checkSignUpConsent() async {
     try {
       final profiles = await supabaseClient.getData(
-        table: SupabaseTable.profile,
+        table: SupabaseTable.profiles,
         column: 'id',
         value: currentUser?.id,
       );
@@ -340,6 +560,7 @@ class AuthController extends GetxController {
     try {
       _isManualLogout = true;
       await _authService.signOut();
+      await Preference.clear();
       user.value = null;
       _showSuccess('Signed out successfully.');
       Get.offAllNamed(SignInScreen.routePath);

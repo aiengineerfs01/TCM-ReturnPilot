@@ -1,13 +1,16 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tcm_return_pilot/constants/strings.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
+import 'package:tcm_return_pilot/domain/theme/theme.dart';
 import 'package:tcm_return_pilot/presentation/authentication/controller/auth_controller.dart';
 import 'package:tcm_return_pilot/utils/validators.dart';
-import 'package:tcm_return_pilot/widgets/back_arrow.dart';
+import 'package:tcm_return_pilot/widgets/app_top_bar.dart';
 import 'package:tcm_return_pilot/widgets/custom_buttons.dart';
 import 'package:tcm_return_pilot/widgets/custom_text_field.dart';
+import 'package:tcm_return_pilot/widgets/solvquest_logo.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -41,6 +44,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -51,116 +56,127 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         body: Obx(() {
           return Form(
             key: _formKey,
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(24, 45, 24, 0),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: [BackArrow()]),
-                    SizedBox(height: 50),
-                    Align(
-                      alignment: Alignment.center,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(0),
-                        child: Image.asset(
-                          Strings.forgotPassword,
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+            child: Column(
+              children: [
+                AppTopBar(),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                      21,
+                      20,
+                      21,
+                      0,
                     ),
-                    Align(
-                      alignment: Alignment.center,
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                          0,
-                          32,
-                          0,
-                          0,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Forgot Password?',
+                          style: poppinsSemiBold.copyWith(fontSize: 24),
                         ),
-                        child: Text(
-                          'Forgot Password',
-                          style: poppinsMedium.copyWith(fontSize: 24),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                      child: Text(
-                        'Please enter your email address to reset your password',
-                        textAlign: TextAlign.center,
-                        style: poppinsMedium.copyWith(
-                          fontSize: 14,
-                          color: AppTheme.of(context).secondaryText,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    CustomTextField(
-                      hintText: 'Enter your email address',
-                      controller: _emailController,
-                      validator: Validator.emailValidator,
-                    ),
-                    SizedBox(height: 20),
-                    PrimaryButton(
-                      onTap: _authController.isLoading
-                          ? null
-                          : () async {
-                              if (_formKey.currentState!.validate()) {
-                                _authController.resetPassword(
-                                  _emailController.text.trim(),
-                                );
-                              }
-                            },
-                      child: _authController.isLoading
-                          ? const CircularProgressIndicator.adaptive()
-                          : Text(
-                              'Continue',
-                              style: poppinsMedium.copyWith(
-                                color: Colors.white,
-                                fontSize: 16,
-                              ),
-                            ),
-                    ),
-
-                    Align(
-                      alignment: Alignment.center,
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                          0,
-                          20,
-                          0,
-                          0,
-                        ),
-                        child: RichText(
-                          textAlign: TextAlign.center,
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text:
-                                    'Don’t remember your email?\nContact us at ',
-                                style: poppinsMedium.copyWith(
-                                  fontSize: 14,
-                                  color: AppTheme.of(context).secondaryText,
-                                ),
-                              ),
-                              TextSpan(
-                                text: 'returnpilot.com',
-                                style: poppinsMedium.copyWith(
-                                  fontSize: 14,
-                                  color: AppTheme.of(context).info,
-                                ),
-                              ),
-                            ],
+                        const SizedBox(height: 2),
+                        Text(
+                          'Enter your email to receive reset instructions.',
+                          style: poppinsMedium.copyWith(
+                            fontSize: 14,
+                            color: theme.grey2,
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 30),
+
+                        Center(
+                          child: Image.asset(
+                            Strings.forgotPassword,
+                            width: 90,
+                            height: 90,
+                            fit: BoxFit.cover,
+                            color: isDark ? Colors.white : AppColors.light.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+
+                        Text(
+                          'Email Address',
+                          style: poppinsMedium.copyWith(
+                            color: theme.appSecondary,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        CustomTextField(
+                          hintText: 'Enter your email address',
+                          controller: _emailController,
+                          validator: Validator.emailValidator,
+                        ),
+                        const SizedBox(height: 30),
+
+                        PrimaryButton(
+                          onTap: _authController.isLoading
+                              ? null
+                              : () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    _authController.resetPassword(
+                                      _emailController.text.trim(),
+                                    );
+                                  }
+                                },
+                          child: _authController.isLoading
+                              ? const CircularProgressIndicator.adaptive()
+                              : Text(
+                                  'Continue',
+                                  style: poppinsMedium.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(height: 10),
+                        Center(
+                          child: Text(
+                            'Don’t remember your email?',
+                            style: poppinsSemiBold.copyWith(
+                              color: theme.grey2,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Align(
+                          alignment: Alignment.center,
+                          child: RichText(
+                            textAlign: TextAlign.center,
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Contact us at ',
+                                  style: poppinsRegular.copyWith(
+                                    fontSize: 15,
+                                    color: AppTheme.of(context).secondaryText,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: 'returnpilot.com',
+                                  style: poppinsRegular.copyWith(
+                                    fontSize: 15,
+                                    color: theme.appGreen,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => Navigator.pop(context),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Spacer(),
+
+                        Center(child: SolvquestLogo(height: 45)),
+                        const SizedBox(height: 30),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           );
         }),

@@ -4,8 +4,14 @@ class Strings {
   /// App Assets
   static const String logo = 'assets/images/logo.png';
   static const String appLogo = 'assets/images/app_logo.png';
+  static const String appLogo2 = 'assets/images/logo_2.png';
   static const String symbolLogo = 'assets/images/SQT-SYMBOL_LOGO.png';
   static const String solvquestLogo = 'assets/images/solvquest_logo.png';
+  static const String solvquestBlue = 'assets/images/solvquest_blue.png';
+  static const String solvquestTaxLogo = 'assets/images/solvquest_tax_logo.png';
+
+  /// SVGS Assets
+  static const String returnPilotLogo = 'assets/svgs/return_pilot_logo.svg';
 
   /// Onboarding Screen Assets
   static const String onboardingOne = 'assets/images/onboarding1.png';
@@ -21,4 +27,9 @@ class Strings {
   /// Dashboard Screen Assets
 
   static const String sendIcon = 'assets/images/send.png';
+
+  /// Assets
+  static const String arrowBack = 'assets/images/arrow_back.png';
+  static const String verificationProgress = 'assets/images/verification_progress.png';
+  static const String identityVerified = 'assets/images/identity_verified.png';
 }
