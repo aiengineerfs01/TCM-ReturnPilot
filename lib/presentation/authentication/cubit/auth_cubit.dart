@@ -1,20 +1,10 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tcm_return_pilot/models/identity_verification_model.dart';
 import 'package:tcm_return_pilot/models/profile_model.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signin_screen.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signup/complete_profile_screen.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signup/verification_progress_view.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signup/verification_rejected_view.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signup/verify_identity_screen.dart';
-import 'package:tcm_return_pilot/presentation/authentication/welcome_consent_screen.dart';
-import 'package:tcm_return_pilot/presentation/home/home_screen.dart';
-import 'package:tcm_return_pilot/presentation/mfa/enroll_page.dart';
-import 'package:tcm_return_pilot/presentation/mfa/verify_page.dart';
-import 'package:tcm_return_pilot/presentation/onboarding/onboarding_screen.dart';
 import 'package:tcm_return_pilot/services/auth_service.dart';
 import 'package:tcm_return_pilot/services/identity_verification_service.dart';
 import 'package:tcm_return_pilot/services/storage_service.dart';
@@ -22,174 +12,237 @@ import 'package:tcm_return_pilot/services/supabase_service.dart';
 import 'package:tcm_return_pilot/utils/enums.dart';
 import 'package:tcm_return_pilot/utils/snackbar.dart';
 
-class AuthController extends GetxController {
+// =============================================================================
+// Auth State
+// =============================================================================
+
+class AuthState {
+  final bool isLoading;
+  final User? user;
+  final String errorMessage;
+  final String? navigationRoute;
+
+  const AuthState({
+    this.isLoading = false,
+    this.user,
+    this.errorMessage = '',
+    this.navigationRoute,
+  });
+
+  AuthState copyWith({
+    bool? isLoading,
+    User? user,
+    bool clearUser = false,
+    String? errorMessage,
+    String? navigationRoute,
+    bool clearNavigation = false,
+  }) {
+    return AuthState(
+      isLoading: isLoading ?? this.isLoading,
+      user: clearUser ? null : (user ?? this.user),
+      errorMessage: errorMessage ?? this.errorMessage,
+      navigationRoute:
+          clearNavigation ? null : (navigationRoute ?? this.navigationRoute),
+    );
+  }
+}
+
+// =============================================================================
+// Auth Cubit
+// =============================================================================
+
+class AuthCubit extends Cubit<AuthState> {
+  AuthCubit() : super(const AuthState()) {
+    _init();
+  }
+
   final AuthService _authService = AuthService();
-
-  final RxBool _isLoading = false.obs;
-  final Rxn<User> user = Rxn<User>();
-  final RxString _errorMessage = ''.obs;
-  bool _isManualLogout = false;
-  bool _isInitialized = false;
-
-  static final SupabaseClient _supabaseClient = SupabaseService.client;
-
-  // Add service instance
   final IdentityVerificationService _verificationService =
       IdentityVerificationService();
 
-  // Getters
-  bool get isLoading => _isLoading.value;
-  User? get currentUser => user.value;
-  String get errorMessage => _errorMessage.value;
-  SupabaseService get supabaseClient => SupabaseService();
+  static final SupabaseClient _supabaseClient = SupabaseService.client;
+  final SupabaseService _supabaseService = SupabaseService();
 
-  // Setters
-  set isLoading(bool value) => _isLoading.value = value;
-  set currentUser(User? value) => user.value = value;
-  set errorMessage(String value) => _errorMessage.value = value;
+  bool _isManualLogout = false;
+  bool _isInitialized = false;
 
-  // ------------------------------
-  // INIT
-  // ------------------------------
-  @override
-  void onInit() {
-    super.onInit();
-    user.value = _authService.currentUser;
+  // ---------------------------------------------------------------------------
+  // Convenience getters
+  // ---------------------------------------------------------------------------
 
-    // Listen for auth/session state changes
+  User? get currentUser => state.user;
+  bool get isLoading => state.isLoading;
+  String get errorMessage => state.errorMessage;
+
+  // ---------------------------------------------------------------------------
+  // Initialization
+  // ---------------------------------------------------------------------------
+
+  void _init() {
+    // Set current user from the auth service
+    emit(state.copyWith(user: _authService.currentUser));
+
+    // Listen for auth / session state changes
     Supabase.instance.client.auth.onAuthStateChange.listen((event) {
       final newUser = event.session?.user;
       if (!_isInitialized) return;
 
       if (newUser != null) {
-        user.value = newUser;
+        emit(state.copyWith(user: newUser));
       } else {
         if (_isManualLogout) {
-          _isManualLogout = false; // reset flag
-          return; // don't show expired message for manual logout
+          _isManualLogout = false;
+          return;
         }
-
         // Session expired or user signed out
-        user.value = null;
+        emit(state.copyWith(clearUser: true));
         _handleSessionExpired();
       }
     });
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+  // Navigation helper
+  // ---------------------------------------------------------------------------
+
+  /// Emit a navigation route, then immediately clear it so the UI only
+  /// reacts once.
+  void _navigate(String route) {
+    emit(state.copyWith(navigationRoute: route));
+    emit(state.copyWith(clearNavigation: true));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Route constants (GoRouter paths)
+  // ---------------------------------------------------------------------------
+
+  static const String _onboarding = '/onboarding';
+  static const String _signIn = '/sign-in';
+  static const String _mfaVerify = '/mfa-verify';
+  static const String _mfaEnroll = '/mfa-enroll';
+  static const String _completeProfile = '/complete-profile';
+  static const String _verifyIdentity = '/verify-identity';
+  static const String _verificationProgress = '/verification-progress';
+  static const String _verificationRejected = '/verification-rejected';
+  static const String _welcomeConsent = '/welcome-consent';
+  static const String _main = '/main';
+
+  // ---------------------------------------------------------------------------
   // CHECK AUTH STATUS (for SplashScreen)
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+
   Future<void> checkAuthStatus() async {
     try {
-      isLoading = true;
+      emit(state.copyWith(isLoading: true));
 
       final currentSession = Supabase.instance.client.auth.currentSession;
 
       if (currentSession != null) {
-        user.value = currentSession.user;
-        // Session exists (AAL2) — go through profile/identity checks
+        emit(state.copyWith(user: currentSession.user));
         await handlePostMfa();
       } else {
-        Get.offAllNamed(OnboardingScreen.routePath);
+        _navigate(_onboarding);
       }
     } catch (e) {
       _showError('Error while checking session.');
-      Get.offAllNamed(OnboardingScreen.routePath);
+      _navigate(_onboarding);
     } finally {
-      isLoading = false;
+      emit(state.copyWith(isLoading: false));
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // LOGIN
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+
   Future<void> login(String email, String password) async {
     try {
-      isLoading = true;
+      emit(state.copyWith(isLoading: true));
       final response = await _authService.signIn(
         email: email,
         password: password,
       );
-      currentUser = response.user;
+      emit(state.copyWith(user: response.user));
 
       _showSuccess('Login successful!');
       await handlePostLogin();
     } catch (e) {
       _showError(e.toString());
     } finally {
-      isLoading = false;
+      emit(state.copyWith(isLoading: false));
       _isInitialized = true;
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // HANDLE POST LOGIN
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+
   /// Called after password login (AAL1). Routes to MFA first.
   Future<void> handlePostLogin() async {
     final user = _supabaseClient.auth.currentUser;
     if (user == null) {
-      Get.offAllNamed(SignInScreen.routePath);
+      _navigate(_signIn);
       return;
     }
 
-    // MFA FIRST — ensures AAL2 session before anything else
     final isMFAEnabled = await isUserMFAEnabled();
     if (isMFAEnabled) {
-      Get.offAllNamed(MFAVerifyPage.routePath);
+      _navigate(_mfaVerify);
     } else {
-      Get.offAllNamed(MFAEnrollPage.route);
+      _navigate(_mfaEnroll);
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // HANDLE POST MFA
-  // ------------------------------
-  /// Called after MFA verification succeeds (AAL2). Checks profile/identity status.
+  // ---------------------------------------------------------------------------
+
+  /// Called after MFA verification succeeds (AAL2). Checks profile/identity.
   Future<void> handlePostMfa() async {
     final user = _supabaseClient.auth.currentUser;
     if (user == null) {
-      Get.offAllNamed(SignInScreen.routePath);
+      _navigate(_signIn);
       return;
     }
 
-    final profiles = await supabaseClient.getData(
+    final profiles = await _supabaseService.getData(
       table: SupabaseTable.profiles,
       column: 'id',
       value: user.id,
     );
 
     if (profiles.isEmpty) {
-      Get.offAllNamed(OnboardingScreen.routePath);
+      _navigate(_onboarding);
       return;
     }
 
-    ProfileModel profile = ProfileModel.fromJson(profiles[0]);
+    final ProfileModel profile = ProfileModel.fromJson(profiles[0]);
 
     if (profile.isProfileCompleted == false) {
-      Get.offAllNamed(CompleteProfileScreen.routePath);
+      _navigate(_completeProfile);
     } else if (profile.identityVerificationStatus ==
         IdentityVerificationStatus.notStarted) {
-      Get.offAllNamed(VerifyIdentityScreen.routePath);
+      _navigate(_verifyIdentity);
     } else if (profile.identityVerificationStatus ==
         IdentityVerificationStatus.pending) {
-      Get.offAllNamed(VerificationInProgressScreen.routePath);
+      _navigate(_verificationProgress);
     } else if (profile.identityVerificationStatus ==
         IdentityVerificationStatus.rejected) {
-      Get.offAllNamed(VerificationRejectedScreen.routePath);
+      _navigate(_verificationRejected);
     } else {
       // Approved — consent check or home
       if (profile.checkedConsent == true) {
-        Get.offAllNamed(HomeScreen.routePath);
+        _navigate(_main);
       } else {
-        Get.offAllNamed(WelcomeConsentScreen.routePath);
+        _navigate(_welcomeConsent);
       }
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // CHECK USER MFA ENABLE
-  // ------------------------------
+  // ---------------------------------------------------------------------------
 
   Future<bool> isUserMFAEnabled() async {
     try {
@@ -202,13 +255,14 @@ class AuthController extends GetxController {
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // SIGNUP
-  // ------------------------------
+  // ---------------------------------------------------------------------------
 
-  Future<void> signUp(String email, String password, String displayName) async {
+  Future<void> signUp(
+      String email, String password, String displayName) async {
     try {
-      isLoading = true;
+      emit(state.copyWith(isLoading: true));
 
       final response = await _authService.signUp(
         email: email,
@@ -216,12 +270,12 @@ class AuthController extends GetxController {
       );
 
       if (response.user != null) {
-        currentUser = response.user;
+        emit(state.copyWith(user: response.user));
 
         _showSuccess(
           'Account created successfully! A verification email has been sent to your email address.',
         );
-        Get.toNamed(SignInScreen.routePath);
+        _navigate(_signIn);
       } else {
         _showError('Signup failed. Please try again.');
       }
@@ -230,17 +284,18 @@ class AuthController extends GetxController {
     } catch (e) {
       _showError('Unexpected error occurred during sign-up.');
     } finally {
-      isLoading = false;
+      emit(state.copyWith(isLoading: false));
       _isInitialized = true;
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // RESET PASSWORD
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+
   Future<void> resetPassword(String email) async {
     try {
-      isLoading = true;
+      emit(state.copyWith(isLoading: true));
       final error = await _authService.resetPassword(email);
 
       if (error != null) {
@@ -249,21 +304,22 @@ class AuthController extends GetxController {
         _showSuccess(
           'Password reset link sent to registered email! Check your inbox.',
         );
-        Get.offAllNamed(SignInScreen.routePath);
+        _navigate(_signIn);
       }
     } catch (e) {
       _showError('Failed to send reset password email.');
     } finally {
-      isLoading = false;
+      emit(state.copyWith(isLoading: false));
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // RE-AUTHENTICATE WITH MFA
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+
   Future<bool> verifyMfaForSensitiveAction(String code) async {
     try {
-      isLoading = true;
+      emit(state.copyWith(isLoading: true));
 
       final error = await _authService.reauthenticateMFA(code);
 
@@ -274,18 +330,18 @@ class AuthController extends GetxController {
 
       return true;
     } finally {
-      isLoading = false;
+      emit(state.copyWith(isLoading: false));
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // UPDATE PASSWORD
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+
   Future<void> updatePassword(String code, String newPassword) async {
     try {
-      isLoading = true;
+      emit(state.copyWith(isLoading: true));
 
-      // Re-authenticate with MFA
       final ok = await verifyMfaForSensitiveAction(code);
       if (!ok) return;
 
@@ -297,17 +353,17 @@ class AuthController extends GetxController {
       }
 
       _showSuccess('Password updated successfully!');
-      Get.offAllNamed(SignInScreen.routePath);
+      _navigate(_signIn);
     } catch (e) {
       _showError('Failed to update password.');
     } finally {
-      isLoading = false;
+      emit(state.copyWith(isLoading: false));
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // CREATE PROFILE
-  // ------------------------------
+  // ---------------------------------------------------------------------------
 
   static Future<void> createProfile({
     required String userId,
@@ -331,9 +387,10 @@ class AuthController extends GetxController {
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // UPDATE PROFILE CONSENT
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+
   Future<void> updateProfileConsent({
     required String userId,
     required bool checkedConsent,
@@ -352,9 +409,9 @@ class AuthController extends GetxController {
     }
   }
 
-  // ------------------------------
-  // Complete Profile
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+  // COMPLETE PROFILE
+  // ---------------------------------------------------------------------------
 
   Future<void> completeProfile(
     String firstName,
@@ -364,10 +421,10 @@ class AuthController extends GetxController {
     File? profileImage,
   ) async {
     try {
-      isLoading = true;
+      emit(state.copyWith(isLoading: true));
       String? profleImageUrl = '';
       if (profileImage != null) {
-        profleImageUrl = await supabaseClient.uploadFileToSupabaseBucket(
+        profleImageUrl = await _supabaseService.uploadFileToSupabaseBucket(
           file: profileImage,
           bucketName: 'profile_media',
           folder: 'profile',
@@ -388,24 +445,25 @@ class AuthController extends GetxController {
           .update(data)
           .eq('id', currentUser?.id.toString() ?? '');
 
-      Get.toNamed(VerifyIdentityScreen.routePath);
+      _navigate(_verifyIdentity);
     } catch (e) {
       log(e.toString());
     } finally {
-      isLoading = false;
+      emit(state.copyWith(isLoading: false));
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // SUBMIT IDENTITY VERIFICATION
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+
   Future<void> submitIdentityVerification({
     required File frontId,
     required File backId,
     required File selfie,
   }) async {
     try {
-      isLoading = true;
+      emit(state.copyWith(isLoading: true));
 
       final result = await _verificationService.submitVerification(
         frontId: frontId,
@@ -415,7 +473,7 @@ class AuthController extends GetxController {
 
       if (result.isSuccess) {
         _showSuccess(result.message ?? 'Verification submitted successfully!');
-        Get.offAllNamed(VerificationInProgressScreen.routePath);
+        _navigate(_verificationProgress);
       } else {
         _showError(result.errorMessage ?? 'Failed to submit verification');
       }
@@ -423,13 +481,14 @@ class AuthController extends GetxController {
       log('Error in submitIdentityVerification: $e');
       _showError('An error occurred while submitting verification');
     } finally {
-      isLoading = false;
+      emit(state.copyWith(isLoading: false));
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // GET VERIFICATION STATUS
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+
   Future<IdentityVerificationModel?> getVerificationStatus() async {
     try {
       return await _verificationService.getVerificationStatus();
@@ -439,16 +498,17 @@ class AuthController extends GetxController {
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // RESUBMIT VERIFICATION
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+
   Future<void> resubmitVerification({
     File? frontId,
     File? backId,
     File? selfie,
   }) async {
     try {
-      isLoading = true;
+      emit(state.copyWith(isLoading: true));
 
       final result = await _verificationService.resubmitVerification(
         frontId: frontId,
@@ -460,7 +520,7 @@ class AuthController extends GetxController {
         _showSuccess(
           result.message ?? 'Verification resubmitted successfully!',
         );
-        Get.offAllNamed(VerificationInProgressScreen.routePath);
+        _navigate(_verificationProgress);
       } else {
         _showError(result.errorMessage ?? 'Failed to resubmit verification');
       }
@@ -468,16 +528,17 @@ class AuthController extends GetxController {
       log('Error in resubmitVerification: $e');
       _showError('An error occurred while resubmitting verification');
     } finally {
-      isLoading = false;
+      emit(state.copyWith(isLoading: false));
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // CONTINUE FROM VERIFICATION IN PROGRESS
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+
   Future<void> onVerificationProgressContinue() async {
     try {
-      isLoading = true;
+      emit(state.copyWith(isLoading: true));
 
       final model = await getVerificationStatus();
       if (model == null) {
@@ -491,87 +552,86 @@ class AuthController extends GetxController {
           break;
 
         case IdentityVerificationStatus.approved:
-          // Approved — go to consent or home
-          final profiles = await supabaseClient.getData(
+          final profiles = await _supabaseService.getData(
             table: SupabaseTable.profiles,
             column: 'id',
             value: currentUser?.id,
           );
           if (profiles.isNotEmpty) {
-            ProfileModel profile = ProfileModel.fromJson(profiles[0]);
+            final ProfileModel profile = ProfileModel.fromJson(profiles[0]);
             if (profile.checkedConsent == true) {
-              Get.offAllNamed(HomeScreen.routePath);
+              _navigate(_main);
             } else {
-              Get.offAllNamed(WelcomeConsentScreen.routePath);
+              _navigate(_welcomeConsent);
             }
           } else {
-            Get.offAllNamed(HomeScreen.routePath);
+            _navigate(_main);
           }
           break;
 
         case IdentityVerificationStatus.rejected:
-          // Show rejection screen with reason
-          Get.offAllNamed(VerificationRejectedScreen.routePath);
+          _navigate(_verificationRejected);
           break;
 
         case IdentityVerificationStatus.notStarted:
-          // Let user start verification
-          Get.offAllNamed(VerifyIdentityScreen.routePath);
+          _navigate(_verifyIdentity);
           break;
       }
     } catch (e) {
       log('onVerificationProgressContinue error: $e');
       _showError('Failed to continue. Try again.');
     } finally {
-      isLoading = false;
+      emit(state.copyWith(isLoading: false));
     }
   }
 
-  // ------------------------------
-  // Check SignUp Consent
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+  // CHECK SIGNUP CONSENT
+  // ---------------------------------------------------------------------------
 
   Future<void> checkSignUpConsent() async {
     try {
-      final profiles = await supabaseClient.getData(
+      final profiles = await _supabaseService.getData(
         table: SupabaseTable.profiles,
         column: 'id',
         value: currentUser?.id,
       );
       if (profiles.isNotEmpty) {
-        ProfileModel profile = ProfileModel.fromJson(profiles[0]);
+        final ProfileModel profile = ProfileModel.fromJson(profiles[0]);
         if (profile.checkedConsent == null || profile.checkedConsent == false) {
-          Get.offAllNamed(WelcomeConsentScreen.routePath);
+          _navigate(_welcomeConsent);
         } else {
-          Get.offAllNamed(HomeScreen.routePath);
+          _navigate(_main);
         }
       } else {
-        Get.offAllNamed(OnboardingScreen.routePath);
+        _navigate(_onboarding);
       }
     } catch (e) {
       log(e.toString());
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // SIGN OUT
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+
   Future<void> logout() async {
     try {
       _isManualLogout = true;
       await _authService.signOut();
       await Preference.clear();
-      user.value = null;
+      emit(state.copyWith(clearUser: true));
       _showSuccess('Signed out successfully.');
-      Get.offAllNamed(SignInScreen.routePath);
+      _navigate(_signIn);
     } catch (e) {
       _showError('Error while signing out.');
     }
   }
 
-  // ------------------------------
+  // ---------------------------------------------------------------------------
   // PRIVATE HELPERS
-  // ------------------------------
+  // ---------------------------------------------------------------------------
+
   void _showError(String message) {
     SnackbarHelper.showError(message);
   }
@@ -582,17 +642,6 @@ class AuthController extends GetxController {
 
   void _handleSessionExpired() {
     SnackbarHelper.showError('Session expired. Please log in again.');
-    Get.offAllNamed(SignInScreen.routePath);
-  }
-
-  // ------------------------------
-  // CLEANUP
-  // ------------------------------
-  @override
-  void onClose() {
-    _isLoading.close();
-    _errorMessage.close();
-    user.close();
-    super.onClose();
+    _navigate(_signIn);
   }
 }

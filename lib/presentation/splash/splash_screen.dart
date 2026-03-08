@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
 import 'package:tcm_return_pilot/constants/strings.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
-import 'package:tcm_return_pilot/presentation/authentication/controller/auth_controller.dart';
+import 'package:tcm_return_pilot/presentation/authentication/cubit/auth_cubit.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
 import 'package:tcm_return_pilot/presentation/authentication/signin_screen.dart';
 import 'package:tcm_return_pilot/presentation/onboarding/onboarding_screen.dart';
@@ -20,9 +20,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  final _authController = Get.put(AuthController(), permanent: true);
-  //final _authController = Get.find<AuthController>();
-
   @override
   void initState() {
     super.initState();
@@ -32,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
       //Navigator.pushReplacementNamed(context, SignInScreen.routePath);
     });
     Future.delayed(const Duration(seconds: 2), () {
-      _authController.checkAuthStatus();
+      context.read<AuthCubit>().checkAuthStatus();
       //Navigator.pushNamed(context, MFAEnrollPage.routePath);
     });
   }

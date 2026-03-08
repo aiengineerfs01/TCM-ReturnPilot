@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
-import 'package:tcm_return_pilot/presentation/authentication/controller/auth_controller.dart';
+import 'package:tcm_return_pilot/presentation/authentication/cubit/auth_cubit.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
-import 'package:tcm_return_pilot/presentation/home/home_screen.dart';
 import 'package:tcm_return_pilot/widgets/app_logo.dart';
 import 'package:tcm_return_pilot/widgets/app_top_bar.dart';
 import 'package:tcm_return_pilot/widgets/custom_buttons.dart';
@@ -20,30 +20,30 @@ class WelcomeConsentScreen extends StatefulWidget {
 }
 
 class _WelcomeConsentScreenState extends State<WelcomeConsentScreen> {
-  final AuthController _authController = Get.find<AuthController>();
   bool _consentChecked = false;
   bool _isLoading = false;
 
   Future<void> _handleContinue() async {
     if (!_consentChecked) {
-      Get.snackbar(
-        'Consent Required',
-        'Please agree to continue.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent.withOpacity(0.8),
-        colorText: Colors.white,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please agree to continue.'),
+          backgroundColor: Colors.redAccent.withOpacity(0.8),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
 
+    final authCubit = context.read<AuthCubit>();
     setState(() => _isLoading = true);
-    await _authController.updateProfileConsent(
-      userId: _authController.user.value!.id,
+    await authCubit.updateProfileConsent(
+      userId: authCubit.currentUser!.id,
       checkedConsent: _consentChecked,
     );
     setState(() => _isLoading = false);
 
-    Get.offNamed(HomeScreen.routePath);
+    if (mounted) context.go('/main');
   }
 
   @override

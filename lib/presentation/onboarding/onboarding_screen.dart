@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/app_colors.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signin_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -111,7 +111,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           right: 20,
           child: GestureDetector(
             onTap: () {
-              Navigator.pushNamed(context, SignInScreen.routePath);
+              context.push('/sign-in');
             },
             child: const Icon(Icons.close, color: Colors.white, size: 28),
           ),
@@ -148,7 +148,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: GestureDetector(
                   onTap: () {
                     if (_pageController.page == onboardingImages.length - 1) {
-                      Navigator.pushNamed(context, SignInScreen.routePath);
+                      context.push('/sign-in');
                     } else {
                       _pageController.nextPage(
                         duration: const Duration(milliseconds: 500),

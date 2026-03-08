@@ -1,20 +1,15 @@
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tcm_return_pilot/constants/strings.dart';
-import 'package:tcm_return_pilot/domain/bindings/global_bindings.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
-import 'package:tcm_return_pilot/domain/theme/theme_controller.dart';
-import 'package:tcm_return_pilot/presentation/authentication/email_verify_screen.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signup/complete_profile_screen.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signup/identity_verified_view.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signup/verification_progress_view.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signup/verification_rejected_view.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signup/verify_identity_screen.dart';
-import 'package:tcm_return_pilot/presentation/authentication/welcome_consent_screen.dart';
-import 'package:tcm_return_pilot/presentation/mfa/verify_page.dart';
-import 'package:tcm_return_pilot/presentation/splash/intro_screen.dart';
-import 'package:tcm_return_pilot/route_generator.dart';
+import 'package:tcm_return_pilot/domain/theme/theme_cubit.dart';
+import 'package:tcm_return_pilot/presentation/authentication/cubit/auth_cubit.dart';
+import 'package:tcm_return_pilot/presentation/main/cubit/main_nav_cubit.dart';
+import 'package:tcm_return_pilot/presentation/interview/cubit/interview_welcome_cubit.dart';
+import 'package:tcm_return_pilot/router/app_router.dart';
+import 'package:tcm_return_pilot/utils/snackbar.dart';
 
 class AppView extends StatefulWidget {
   const AppView({super.key});
@@ -24,51 +19,66 @@ class AppView extends StatefulWidget {
 }
 
 class _AppViewState extends State<AppView> {
+  late final AuthCubit _authCubit;
+  late final ThemeCubit _themeCubit;
+  late final GoRouter _router;
   final _appLinks = AppLinks();
 
   @override
   void initState() {
     super.initState();
+    _authCubit = AuthCubit();
+    _themeCubit = ThemeCubit();
+    _router = AppRouter.router(_authCubit);
 
-    ///Handle deep link when app is already running (foreground/background)
+    // Handle deep link when app is already running
     // _appLinks.uriLinkStream.listen((Uri? uri) {
     //   if (uri != null) _handleDeepLink(uri);
     // });
-
-    // Handle deep link when app starts cold (initial launch)
-    //_checkInitialLink();
-  }
-
-  Future<void> _checkInitialLink() async {
-    final initialUri = await _appLinks.getInitialLink();
-    if (initialUri != null) _handleDeepLink(initialUri);
   }
 
   void _handleDeepLink(Uri uri) {
     if (uri.scheme == 'returnpilot-app' && uri.path == '/email/verify') {
-      Get.toNamed(EmailVerifyScreen.route);
-      //Supabase.instance.client.auth.linkIdentity(provider);
+      _router.go('/email/verify');
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    // Initialize ThemeController before building
-    Get.put(ThemeController(), permanent: true);
+  void dispose() {
+    _authCubit.close();
+    _themeCubit.close();
+    super.dispose();
+  }
 
-    return GetBuilder<ThemeController>(
-      init: ThemeController.to,
-      builder: (controller) => GetMaterialApp(
-        initialBinding: GlobalBinding(),
-        title: Strings.appName,
-        debugShowCheckedModeBanner: false,
-        initialRoute: IntroScreen.routePath,
-        //initialRoute: WelcomeConsentScreen.routePath,
-        //theme: AppTheme.darkTheme,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: controller.flutterThemeMode,
-        onGenerateRoute: RouteGenerator.generateRoute,
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthCubit>.value(value: _authCubit),
+        BlocProvider<ThemeCubit>.value(value: _themeCubit),
+        BlocProvider<MainNavCubit>(create: (_) => MainNavCubit()),
+        BlocProvider<InterviewWelcomeCubit>(create: (_) => InterviewWelcomeCubit()),
+      ],
+      child: BlocListener<AuthCubit, AuthState>(
+        listenWhen: (previous, current) => current.navigationRoute != null,
+        listener: (context, state) {
+          if (state.navigationRoute != null) {
+            _router.go(state.navigationRoute!);
+          }
+        },
+        child: BlocBuilder<ThemeCubit, ThemeState>(
+          builder: (context, themeState) {
+            return MaterialApp.router(
+              title: Strings.appName,
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeState.flutterThemeMode,
+              routerConfig: _router,
+              scaffoldMessengerKey: SnackbarHelper.messengerKey,
+            );
+          },
+        ),
       ),
     );
   }

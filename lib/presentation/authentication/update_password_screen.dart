@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/pin_theme.dart';
-import 'package:tcm_return_pilot/presentation/authentication/controller/auth_controller.dart';
+import 'package:tcm_return_pilot/presentation/authentication/cubit/auth_cubit.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signin_screen.dart';
 import 'package:tcm_return_pilot/presentation/mfa/widgets/verify_mfa_guide_dialog.dart';
 import 'package:tcm_return_pilot/services/auth_service.dart';
 import 'package:tcm_return_pilot/utils/dialogs.dart';
@@ -25,7 +25,6 @@ class UpdatePassword extends StatefulWidget {
 }
 
 class _UpdatePasswordState extends State<UpdatePassword> {
-  final AuthController _authController = Get.put(AuthController());
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -53,7 +52,7 @@ class _UpdatePasswordState extends State<UpdatePassword> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: theme.primaryBackground,
-        body: Obx(() {
+        body: BlocBuilder<AuthCubit, AuthState>(builder: (context, state) {
           return SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(24, 50, 24, 24),
             child: Form(
@@ -64,7 +63,7 @@ class _UpdatePasswordState extends State<UpdatePassword> {
                   /// --- Header Row ---
                   BackArrow(
                     onTap: () {
-                      Get.offAllNamed(SignInScreen.routePath);
+                      context.go('/sign-in');
                     },
                   ),
 
@@ -202,7 +201,7 @@ class _UpdatePasswordState extends State<UpdatePassword> {
 
                   /// --- Sign In Button ---
                   PrimaryButton(
-                    onTap: _authController.isLoading
+                    onTap: state.isLoading
                         ? null
                         : () async {
                             if (_formKey.currentState!.validate()) {
@@ -212,14 +211,14 @@ class _UpdatePasswordState extends State<UpdatePassword> {
                                 );
                                 return;
                               }
-                              _authController.updatePassword(
+                              context.read<AuthCubit>().updatePassword(
                                 _pinController.text.trim(),
                                 _passwordController.text.trim(),
                               );
                             }
                           },
 
-                    child: _authController.isLoading
+                    child: state.isLoading
                         ? const CircularProgressIndicator.adaptive()
                         : Text(
                             'Update Password',

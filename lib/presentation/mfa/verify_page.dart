@@ -8,8 +8,8 @@ import 'package:tcm_return_pilot/services/auth_service.dart';
 import 'package:tcm_return_pilot/widgets/app_top_bar.dart';
 import 'package:tcm_return_pilot/widgets/custom_buttons.dart';
 import 'package:tcm_return_pilot/widgets/solvquest_logo.dart';
-import 'package:get/get.dart';
-import 'package:tcm_return_pilot/presentation/authentication/controller/auth_controller.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tcm_return_pilot/presentation/authentication/cubit/auth_cubit.dart';
 
 class MFAVerifyPage extends StatefulWidget {
   static const route = '/mfa/verify';
@@ -25,7 +25,6 @@ class MFAVerifyPage extends StatefulWidget {
 class _MFAVerifyPageState extends State<MFAVerifyPage> {
   final AuthService _authService = AuthService();
   final TextEditingController _pinController = TextEditingController();
-  final AuthController _authController = Get.find<AuthController>();
 
   @override
   initState() {
@@ -81,17 +80,21 @@ class _MFAVerifyPageState extends State<MFAVerifyPage> {
 
                   const SizedBox(height: 35),
 
-                  Obx(() => PrimaryButton(
-                        title: 'Verify',
-                        isLoading: _authController.isLoading,
-                        onTap: _pinController.text.length < 6
-                            ? null
-                            : () async {
-                                await _authService.verifyTotpCode(
-                                  _pinController.text,
-                                );
-                              },
-                      )),
+                  BlocBuilder<AuthCubit, AuthState>(
+                    builder: (context, state) => PrimaryButton(
+                      title: 'Verify',
+                      isLoading: state.isLoading,
+                      onTap: _pinController.text.length < 6
+                          ? null
+                          : () async {
+                              await _authService.verifyTotpCode(
+                                _pinController.text,
+                                onSuccess: () => context.read<AuthCubit>().handlePostMfa(),
+                                setLoading: (v) {},
+                              );
+                            },
+                    ),
+                  ),
 
                   const SizedBox(height: 20),
 

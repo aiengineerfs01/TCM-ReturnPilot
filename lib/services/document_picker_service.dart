@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
+import 'package:tcm_return_pilot/utils/snackbar.dart';
 
 enum PickerSource { camera, gallery, file }
 
@@ -351,29 +351,11 @@ class DocumentPickerService {
   // SNACKBAR HELPERS
   // ============================================
   static void showErrorSnackbar(String message) {
-    Get.snackbar(
-      'Error',
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red.shade100,
-      colorText: Colors.red.shade800,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 10,
-      icon: const Icon(Icons.error_outline, color: Colors.red),
-    );
+    SnackbarHelper.showError(message);
   }
 
   static void showSuccessSnackbar(String message) {
-    Get.snackbar(
-      'Success',
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green.shade100,
-      colorText: Colors.green.shade800,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 10,
-      icon: const Icon(Icons.check_circle_outline, color: Colors.green),
-    );
+    SnackbarHelper.showSuccess(message);
   }
 }
 

@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
-import 'package:tcm_return_pilot/presentation/authentication/controller/auth_controller.dart';
+import 'package:tcm_return_pilot/presentation/authentication/cubit/auth_cubit.dart';
 import 'package:tcm_return_pilot/services/document_picker_service.dart';
 import 'package:tcm_return_pilot/widgets/app_top_bar.dart';
 import 'package:tcm_return_pilot/widgets/custom_buttons.dart';
@@ -120,9 +120,6 @@ class _VerifyIdentityScreenState extends State<VerifyIdentityScreen> {
   // SUBMIT
   // ============================================
 
-  // Add controller in state class
-  final AuthController _authController = Get.find<AuthController>();
-
   // Update the _submitVerification method
   Future<void> _submitVerification() async {
     if (!_isAllDocumentsUploaded) {
@@ -132,7 +129,7 @@ class _VerifyIdentityScreenState extends State<VerifyIdentityScreen> {
       return;
     }
 
-    await _authController.submitIdentityVerification(
+    await context.read<AuthCubit>().submitIdentityVerification(
       frontId: _frontIdFile!,
       backId: _backIdFile!,
       selfie: _selfieFile!,
@@ -192,12 +189,12 @@ class _VerifyIdentityScreenState extends State<VerifyIdentityScreen> {
                       const SizedBox(height: 30),
 
                       // Submit Button
-                      Obx(
-                        () => PrimaryButton(
-                          onTap: _authController.isLoading
+                      BlocBuilder<AuthCubit, AuthState>(
+                        builder: (context, state) => PrimaryButton(
+                          onTap: state.isLoading
                               ? null
                               : _submitVerification,
-                          child: _authController.isLoading
+                          child: state.isLoading
                               ? const SizedBox(
                                   height: 20,
                                   width: 20,

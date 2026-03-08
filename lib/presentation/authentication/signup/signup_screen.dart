@@ -1,8 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
-import 'package:tcm_return_pilot/presentation/authentication/controller/auth_controller.dart';
+import 'package:tcm_return_pilot/presentation/authentication/cubit/auth_cubit.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
 import 'package:tcm_return_pilot/utils/validators.dart';
 import 'package:tcm_return_pilot/widgets/app_top_bar.dart';
@@ -21,7 +22,6 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final AuthController _authController = Get.put(AuthController());
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -48,7 +48,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: AppTheme.of(context).primaryBackground,
-        body: Obx(() {
+        body: BlocBuilder<AuthCubit, AuthState>(builder: (context, state) {
           return Form(
             key: _formKey,
             child: Column(
@@ -155,18 +155,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         Spacer(),
                         PrimaryButton(
-                          onTap: _authController.isLoading
+                          onTap: state.isLoading
                               ? null
                               : () async {
                                   if (_formKey.currentState!.validate()) {
-                                    await _authController.signUp(
+                                    await context.read<AuthCubit>().signUp(
                                       _emailController.text.trim(),
                                       _passwordController.text.trim(),
                                       _nameController.text.trim(),
                                     );
                                   }
                                 },
-                          child: _authController.isLoading
+                          child: state.isLoading
                               ? const CircularProgressIndicator.adaptive()
                               : Text(
                                   'Signup',
@@ -197,7 +197,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     color: theme.appGreen,
                                   ),
                                   recognizer: TapGestureRecognizer()
-                                    ..onTap = () => Navigator.pop(context),
+                                    ..onTap = () => context.pop(),
                                 ),
                               ],
                             ),

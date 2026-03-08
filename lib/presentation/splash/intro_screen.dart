@@ -1,8 +1,8 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
-import 'package:tcm_return_pilot/presentation/splash/splash_screen.dart';
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
@@ -20,7 +20,7 @@ class _IntroScreenState extends State<IntroScreen> {
     super.initState();
     Future.delayed(const Duration(seconds: 13), () {
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, SplashScreen.routePath);
+      context.go('/splash');
     });
   }
 

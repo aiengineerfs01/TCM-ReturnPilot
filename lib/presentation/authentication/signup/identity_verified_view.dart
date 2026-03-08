@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tcm_return_pilot/constants/strings.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
-import 'package:tcm_return_pilot/presentation/home/home_screen.dart';
 import 'package:tcm_return_pilot/widgets/custom_buttons.dart';
 import 'package:tcm_return_pilot/widgets/solvquest_logo.dart';
 
@@ -65,7 +65,7 @@ class IdentityVerifiedScreen extends StatelessWidget {
               child: PrimaryButton(
                 onTap: () {
                   // Navigate to home screen or dashboard
-                  Navigator.pushReplacementNamed(context, HomeScreen.routePath);
+                  context.go('/main');
                 },
                 child: Text(
                   'Continue',

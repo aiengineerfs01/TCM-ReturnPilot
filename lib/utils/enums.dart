@@ -27,25 +27,8 @@ enum IdentityVerificationStatus {
 
 // Extension to get table name
 extension SupabaseTableExtension on SupabaseTable {
-  String get name {
-    switch (this) {
-      case SupabaseTable. profiles:
-        return 'profiles';
-      case SupabaseTable.identity_verifications:
-        return 'identity_verifications';
-      // ... other cases
-      case SupabaseTable.users:
-        // TODO: Handle this case.
-        throw UnimplementedError();
-      case SupabaseTable.chat_thread:
-        // TODO: Handle this case.
-        throw UnimplementedError();
-      case SupabaseTable.chat_messages:
-        // TODO: Handle this case.
-        throw UnimplementedError();
-      case SupabaseTable.chat_media:
-        // TODO: Handle this case.
-        throw UnimplementedError();
-    }
+  String get tableName {
+    // Use the enum's name directly since it matches the table names
+    return name;
   }
 }

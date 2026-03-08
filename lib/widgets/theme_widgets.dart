@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
-import 'package:tcm_return_pilot/domain/theme/theme_controller.dart';
+import 'package:tcm_return_pilot/domain/theme/theme_cubit.dart';
 
 /// A simple toggle button for switching between light and dark mode.
 class ThemeToggleButton extends StatelessWidget {
@@ -18,53 +18,54 @@ class ThemeToggleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = AppTheme.of(context);
 
-    return Obx(() {
-      final controller = ThemeController.to;
-      final isDark = controller.isDarkMode;
+    return BlocBuilder<ThemeCubit, ThemeState>(
+      builder: (context, state) {
+        final isDark = state.isDarkMode;
 
-      return GestureDetector(
-        onTap: controller.toggleTheme,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: theme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: theme.borderColor),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                transitionBuilder: (child, animation) {
-                  return RotationTransition(
-                    turns: animation,
-                    child: FadeTransition(opacity: animation, child: child),
-                  );
-                },
-                child: Icon(
-                  isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                  key: ValueKey(isDark),
-                  size: size,
-                  color: isDark ? Colors.amber : theme.primary,
-                ),
-              ),
-              if (showLabel) ...[
-                const SizedBox(width: 8),
-                Text(
-                  isDark ? 'Dark' : 'Light',
-                  style: TextStyle(
-                    color: theme.primaryText,
-                    fontWeight: FontWeight.w500,
+        return GestureDetector(
+          onTap: () => context.read<ThemeCubit>().toggleTheme(),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: theme.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: theme.borderColor),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, animation) {
+                    return RotationTransition(
+                      turns: animation,
+                      child: FadeTransition(opacity: animation, child: child),
+                    );
+                  },
+                  child: Icon(
+                    isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                    key: ValueKey(isDark),
+                    size: size,
+                    color: isDark ? Colors.amber : theme.primary,
                   ),
                 ),
+                if (showLabel) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    isDark ? 'Dark' : 'Light',
+                    style: TextStyle(
+                      color: theme.primaryText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -76,57 +77,58 @@ class ThemeModeSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = AppTheme.of(context);
 
-    return Obx(() {
-      final controller = ThemeController.to;
-
-      return Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: theme.grey1,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: AppThemeMode.values.map((mode) {
-            final isSelected = controller.themeMode == mode;
-            return GestureDetector(
-              onTap: () => controller.setThemeMode(mode),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected ? theme.primary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      mode.icon,
-                      size: 18,
-                      color: isSelected ? Colors.white : theme.secondaryText,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      mode.label,
-                      style: TextStyle(
+    return BlocBuilder<ThemeCubit, ThemeState>(
+      builder: (context, state) {
+        return Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: theme.grey1,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: AppThemeMode.values.map((mode) {
+              final isSelected = state.themeMode == mode;
+              return GestureDetector(
+                onTap: () => context.read<ThemeCubit>().setThemeMode(mode),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected ? theme.primary : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        mode.icon,
+                        size: 18,
                         color: isSelected ? Colors.white : theme.secondaryText,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.w500,
-                        fontSize: 13,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Text(
+                        mode.label,
+                        style: TextStyle(
+                          color:
+                              isSelected ? Colors.white : theme.secondaryText,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          }).toList(),
-        ),
-      );
-    });
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -138,32 +140,32 @@ class ThemeSettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = AppTheme.of(context);
 
-    return Obx(() {
-      final controller = ThemeController.to;
-
-      return ListTile(
-        leading: Icon(
-          controller.themeMode.icon,
-          color: theme.primary,
-        ),
-        title: Text(
-          'Theme',
-          style: TextStyle(
-            color: theme.primaryText,
-            fontWeight: FontWeight.w500,
+    return BlocBuilder<ThemeCubit, ThemeState>(
+      builder: (context, state) {
+        return ListTile(
+          leading: Icon(
+            state.themeMode.icon,
+            color: theme.primary,
           ),
-        ),
-        subtitle: Text(
-          controller.themeMode.label,
-          style: TextStyle(color: theme.secondaryText),
-        ),
-        trailing: Icon(
-          Icons.chevron_right_rounded,
-          color: theme.secondaryText,
-        ),
-        onTap: () => _showThemeDialog(context),
-      );
-    });
+          title: Text(
+            'Theme',
+            style: TextStyle(
+              color: theme.primaryText,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          subtitle: Text(
+            state.themeMode.label,
+            style: TextStyle(color: theme.secondaryText),
+          ),
+          trailing: Icon(
+            Icons.chevron_right_rounded,
+            color: theme.secondaryText,
+          ),
+          onTap: () => _showThemeDialog(context),
+        );
+      },
+    );
   }
 
   void _showThemeDialog(BuildContext context) {
@@ -171,7 +173,7 @@ class ThemeSettingsTile extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: theme.surface,
         title: Text(
           'Choose Theme',
@@ -180,40 +182,43 @@ class ThemeSettingsTile extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: AppThemeMode.values.map((mode) {
-            return Obx(() {
-              final controller = ThemeController.to;
-              final isSelected = controller.themeMode == mode;
+            return BlocBuilder<ThemeCubit, ThemeState>(
+              bloc: context.read<ThemeCubit>(),
+              builder: (context, state) {
+                final isSelected = state.themeMode == mode;
 
-              return RadioListTile<AppThemeMode>(
-                value: mode,
-                groupValue: controller.themeMode,
-                onChanged: (value) {
-                  if (value != null) {
-                    controller.setThemeMode(value);
-                    Navigator.pop(context);
-                  }
-                },
-                title: Row(
-                  children: [
-                    Icon(
-                      mode.icon,
-                      size: 20,
-                      color: isSelected ? theme.primary : theme.secondaryText,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      mode.label,
-                      style: TextStyle(
-                        color: theme.primaryText,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.w400,
+                return RadioListTile<AppThemeMode>(
+                  value: mode,
+                  groupValue: state.themeMode,
+                  onChanged: (value) {
+                    if (value != null) {
+                      context.read<ThemeCubit>().setThemeMode(value);
+                      Navigator.pop(dialogContext);
+                    }
+                  },
+                  title: Row(
+                    children: [
+                      Icon(
+                        mode.icon,
+                        size: 20,
+                        color:
+                            isSelected ? theme.primary : theme.secondaryText,
                       ),
-                    ),
-                  ],
-                ),
-                activeColor: theme.primary,
-              );
-            });
+                      const SizedBox(width: 12),
+                      Text(
+                        mode.label,
+                        style: TextStyle(
+                          color: theme.primaryText,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                  activeColor: theme.primary,
+                );
+              },
+            );
           }).toList(),
         ),
       ),
@@ -229,48 +234,48 @@ class ThemeDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = AppTheme.of(context);
 
-    return Obx(() {
-      final controller = ThemeController.to;
-
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: theme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: theme.borderColor),
-        ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<AppThemeMode>(
-            value: controller.themeMode,
-            icon: Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: theme.secondaryText,
-            ),
-            dropdownColor: theme.surface,
+    return BlocBuilder<ThemeCubit, ThemeState>(
+      builder: (context, state) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: theme.surface,
             borderRadius: BorderRadius.circular(12),
-            items: AppThemeMode.values.map((mode) {
-              return DropdownMenuItem(
-                value: mode,
-                child: Row(
-                  children: [
-                    Icon(mode.icon, size: 18, color: theme.primary),
-                    const SizedBox(width: 8),
-                    Text(
-                      mode.label,
-                      style: TextStyle(color: theme.primaryText),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-            onChanged: (mode) {
-              if (mode != null) {
-                controller.setThemeMode(mode);
-              }
-            },
+            border: Border.all(color: theme.borderColor),
           ),
-        ),
-      );
-    });
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<AppThemeMode>(
+              value: state.themeMode,
+              icon: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: theme.secondaryText,
+              ),
+              dropdownColor: theme.surface,
+              borderRadius: BorderRadius.circular(12),
+              items: AppThemeMode.values.map((mode) {
+                return DropdownMenuItem(
+                  value: mode,
+                  child: Row(
+                    children: [
+                      Icon(mode.icon, size: 18, color: theme.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        mode.label,
+                        style: TextStyle(color: theme.primaryText),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (mode) {
+                if (mode != null) {
+                  context.read<ThemeCubit>().setThemeMode(mode);
+                }
+              },
+            ),
+          ),
+        );
+      },
+    );
   }
 }

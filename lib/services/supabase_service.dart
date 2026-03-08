@@ -9,12 +9,35 @@ import 'package:tcm_return_pilot/utils/extensions.dart';
 
 /// Enum for your Supabase table names — keeps your code organized
 enum SupabaseTable {
+  // Core tables
   users,
   profiles,
   chat_thread,
   chat_messages,
   chat_media,
   identity_verifications,
+
+  // Tax compliance tables
+  tax_returns,
+  taxpayer_info,
+  dependents,
+  w2_forms,
+  form_1099_int,
+  form_1099_div,
+  form_1099_r,
+  form_1099_nec,
+  form_1099_g,
+  form_1099_ssa,
+  adjustments_to_income,
+  deductions,
+  credits,
+  tax_payments,
+  refund_preferences,
+  return_signatures,
+  efile_submissions,
+  state_returns,
+  tax_documents,
+  tax_audit_log,
 }
 
 /// A clean and professional Supabase service for basic CRUD operations

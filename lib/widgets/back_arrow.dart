@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:get/get.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
 
 class BackArrow extends StatelessWidget {
   final VoidCallback? onTap;
   const BackArrow({super.key, this.onTap});
 
-  /// Safely pops the current route. If no route to pop, does nothing.
   static void safePop([BuildContext? context]) {
-    if (Get.key?.currentState?.canPop() ?? false) {
-      Get.back();
-    } else if (context != null && Navigator.canPop(context)) {
+    if (context != null && Navigator.canPop(context)) {
       Navigator.pop(context);
     }
-    // If nothing to pop, do nothing (prevents black screen)
   }
 
   @override

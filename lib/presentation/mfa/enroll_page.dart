@@ -9,6 +9,8 @@ import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
 import 'package:tcm_return_pilot/domain/theme/pin_theme.dart';
 import 'package:tcm_return_pilot/presentation/authentication/signin_screen.dart';
 import 'package:tcm_return_pilot/presentation/mfa/widgets/enroll_mfa_guide_dialog.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tcm_return_pilot/presentation/authentication/cubit/auth_cubit.dart';
 import 'package:tcm_return_pilot/services/auth_service.dart';
 import 'package:tcm_return_pilot/services/supabase_service.dart';
 import 'package:tcm_return_pilot/utils/dialogs.dart';
@@ -186,6 +188,7 @@ class _MFAEnrollPageState extends State<MFAEnrollPage> {
                                       await _authService.verifyMfa(
                                         factorId: factorId,
                                         code: _pinController.text,
+                                        onSuccess: () => context.read<AuthCubit>().handlePostMfa(),
                                       );
                                     },
                               child: Text(

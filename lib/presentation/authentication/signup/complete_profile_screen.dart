@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
-import 'package:tcm_return_pilot/presentation/authentication/controller/auth_controller.dart';
+import 'package:tcm_return_pilot/presentation/authentication/cubit/auth_cubit.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
 import 'package:tcm_return_pilot/utils/extensions.dart';
 import 'package:tcm_return_pilot/utils/validators.dart';
@@ -24,7 +24,6 @@ class CompleteProfileScreen extends StatefulWidget {
 }
 
 class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
-  final AuthController _authController = Get.put(AuthController());
   final _formKey = GlobalKey<FormState>();
 
   final _firstNameController =
@@ -62,11 +61,14 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       }
     } catch (e) {
       // Handle error
-      Get.snackbar(
-        'Error',
-        'Failed to pick image:  $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick image: $e'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -135,7 +137,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: AppTheme.of(context).primaryBackground,
-        body: Obx(() {
+        body: BlocBuilder<AuthCubit, AuthState>(builder: (context, state) {
           return Form(
             key: _formKey,
             child: Column(
@@ -287,19 +289,20 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                           const SizedBox(height: 22),
 
                           PrimaryButton(
-                            onTap: _authController.isLoading
+                            onTap: state.isLoading
                                 ? null
                                 : () async {
                                     if (_formKey.currentState!.validate()) {
                                       if (_selectedImage == null) {
-                                        Get.snackbar(
-                                          'Error',
-                                          'Please select an image',
-                                          snackPosition: SnackPosition.BOTTOM,
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Please select an image'),
+                                            behavior: SnackBarBehavior.floating,
+                                          ),
                                         );
                                         return;
                                       }
-                                      await _authController.completeProfile(
+                                      await context.read<AuthCubit>().completeProfile(
                                         _firstNameController.text.trim(),
                                         _lastNameController.text.trim(),
                                         _addressController.text.trim(),
@@ -308,7 +311,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                                       );
                                     }
                                   },
-                            child: _authController.isLoading
+                            child: state.isLoading
                                 ? const CircularProgressIndicator.adaptive()
                                 : Text(
                                     'Get Started',

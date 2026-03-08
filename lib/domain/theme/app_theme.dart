@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:tcm_return_pilot/domain/theme/app_colors.dart';
-import 'package:tcm_return_pilot/domain/theme/theme_controller.dart';
 
 /// Abstract theme class that provides access to all theme colors.
 /// Use `AppTheme.of(context)` to get the current theme colors.
@@ -16,23 +15,18 @@ abstract class AppTheme {
     return brightness == Brightness.dark ? DarkModeTheme() : LightModeTheme();
   }
 
-  /// Get current theme without context (uses ThemeController)
+  /// Get current theme without context (uses platform brightness)
   static AppTheme get current {
-    try {
-      final controller = Get.find<ThemeController>();
-      return controller.isDarkMode ? DarkModeTheme() : LightModeTheme();
-    } catch (_) {
-      return LightModeTheme();
-    }
+    final brightness =
+        SchedulerBinding.instance.platformDispatcher.platformBrightness;
+    return brightness == Brightness.dark ? DarkModeTheme() : LightModeTheme();
   }
 
   /// Check if current theme is dark
   static bool get isDark {
-    try {
-      return Get.find<ThemeController>().isDarkMode;
-    } catch (_) {
-      return false;
-    }
+    final brightness =
+        SchedulerBinding.instance.platformDispatcher.platformBrightness;
+    return brightness == Brightness.dark;
   }
 
   // ============================================

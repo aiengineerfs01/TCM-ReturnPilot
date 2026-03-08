@@ -30,6 +30,13 @@ class Strings {
 
   /// Assets
   static const String arrowBack = 'assets/images/arrow_back.png';
-  static const String verificationProgress = 'assets/images/verification_progress.png';
+  static const String verificationProgress =
+      'assets/images/verification_progress.png';
   static const String identityVerified = 'assets/images/identity_verified.png';
+
+  /// Bottom Navigation Bar Assets
+  static const String homeIcon = 'assets/icons/home_icon.png';
+  static const String documentsIcon = 'assets/icons/document_icon.png';
+  static const String supportIcon = 'assets/icons/support_icon.png';
+  static const String settingsIcon = 'assets/icons/setting_icon.png';
 }

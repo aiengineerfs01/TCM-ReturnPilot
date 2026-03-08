@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signin_screen.dart';
 import 'package:tcm_return_pilot/widgets/custom_buttons.dart';
 
 class EmailVerifyScreen extends StatelessWidget {
@@ -67,10 +67,7 @@ class EmailVerifyScreen extends StatelessWidget {
                   PrimaryButton(
                     title: 'Sign In',
                     onTap: () {
-                      Navigator.pushReplacementNamed(
-                        context,
-                        SignInScreen.routePath,
-                      );
+                      context.go('/sign-in');
                     },
 
                     child: Text(

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tcm_return_pilot/constants/strings.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
-import 'package:tcm_return_pilot/presentation/authentication/controller/auth_controller.dart';
+import 'package:tcm_return_pilot/presentation/authentication/cubit/auth_cubit.dart';
 import 'package:tcm_return_pilot/widgets/custom_buttons.dart';
 import 'package:tcm_return_pilot/widgets/safe_pop_scope.dart';
 import 'package:tcm_return_pilot/widgets/solvquest_logo.dart';
@@ -21,8 +21,6 @@ class VerificationInProgressScreen extends StatefulWidget {
 
 class _VerificationInProgressScreenState
     extends State<VerificationInProgressScreen> {
-  // Add controller in state class
-  final AuthController _authController = Get.find<AuthController>();
   @override
   Widget build(BuildContext context) {
     final theme = AppTheme.of(context);
@@ -65,11 +63,11 @@ class _VerificationInProgressScreenState
             // Continue Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Obx(
-                () => PrimaryButton(
-                  isLoading: _authController.isLoading,
+              child: BlocBuilder<AuthCubit, AuthState>(
+                builder: (context, state) => PrimaryButton(
+                  isLoading: state.isLoading,
                   onTap: () {
-                    _authController.onVerificationProgressContinue();
+                    context.read<AuthCubit>().onVerificationProgressContinue();
                   },
                   child: Text(
                     'Continue',
@@ -86,7 +84,7 @@ class _VerificationInProgressScreenState
 
             // Logout Button
             TextButton(
-              onPressed: () => _authController.logout(),
+              onPressed: () => context.read<AuthCubit>().logout(),
               child: Text(
                 'Log out',
                 style: poppinsMedium.copyWith(

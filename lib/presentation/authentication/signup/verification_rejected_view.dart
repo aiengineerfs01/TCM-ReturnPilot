@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
-import 'package:tcm_return_pilot/presentation/authentication/controller/auth_controller.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signup/verify_identity_screen.dart';
+import 'package:tcm_return_pilot/presentation/authentication/cubit/auth_cubit.dart';
 import 'package:tcm_return_pilot/widgets/custom_buttons.dart';
 import 'package:tcm_return_pilot/widgets/safe_pop_scope.dart';
 import 'package:tcm_return_pilot/widgets/solvquest_logo.dart';
@@ -21,7 +21,6 @@ class VerificationRejectedScreen extends StatefulWidget {
 
 class _VerificationRejectedScreenState
     extends State<VerificationRejectedScreen> {
-  final AuthController _authController = Get.find<AuthController>();
   String? _rejectionReason;
   bool _isLoadingReason = true;
 
@@ -32,7 +31,7 @@ class _VerificationRejectedScreenState
   }
 
   Future<void> _loadRejectionReason() async {
-    final status = await _authController.getVerificationStatus();
+    final status = await context.read<AuthCubit>().getVerificationStatus();
     setState(() {
       _rejectionReason = status?.rejectionReason;
       _isLoadingReason = false;
@@ -151,12 +150,12 @@ class _VerificationRejectedScreenState
               const SizedBox(height: 35),
 
               // Retry Verification Button
-              Obx(
-                () => PrimaryButton(
+              BlocBuilder<AuthCubit, AuthState>(
+                builder: (context, state) => PrimaryButton(
                   title: 'Retry Verification',
-                  isLoading: _authController.isLoading,
+                  isLoading: state.isLoading,
                   onTap: () {
-                    Get.offAllNamed(VerifyIdentityScreen.routePath);
+                    context.go('/verify-identity');
                   },
                 ),
               ),
@@ -165,7 +164,7 @@ class _VerificationRejectedScreenState
 
               // Logout Button
               TextButton(
-                onPressed: () => _authController.logout(),
+                onPressed: () => context.read<AuthCubit>().logout(),
                 child: Text(
                   'Log out',
                   style: poppinsMedium.copyWith(

@@ -1,13 +1,12 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tcm_return_pilot/constants/strings.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/app_colors.dart';
-import 'package:tcm_return_pilot/presentation/authentication/controller/auth_controller.dart';
+import 'package:tcm_return_pilot/presentation/authentication/cubit/auth_cubit.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
-import 'package:tcm_return_pilot/presentation/authentication/forgot_password.dart';
-import 'package:tcm_return_pilot/presentation/authentication/signup/signup_screen.dart';
 import 'package:tcm_return_pilot/services/storage_service.dart';
 import 'package:tcm_return_pilot/utils/validators.dart';
 import 'package:tcm_return_pilot/widgets/custom_buttons.dart';
@@ -25,7 +24,6 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  final AuthController _authController = Get.put(AuthController());
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -63,7 +61,7 @@ class _SignInScreenState extends State<SignInScreen> {
       child: Scaffold(
         backgroundColor: AppTheme.of(context).primaryBackground,
         resizeToAvoidBottomInset: false,
-        body: Obx(() {
+        body: BlocBuilder<AuthCubit, AuthState>(builder: (context, state) {
           return Stack(
             children: [
               // Top blue curved background
@@ -215,10 +213,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                             const Spacer(),
                             GestureDetector(
-                              onTap: () => Navigator.pushNamed(
-                                context,
-                                ForgotPasswordScreen.routePath,
-                              ),
+                              onTap: () => context.push('/forgot-password'),
                               child: Text(
                                 'Forget Password?',
                                 style: poppinsRegular.copyWith(
@@ -243,7 +238,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               width: double.infinity,
                               child: PrimaryButton(
                                 title: 'Sign In',
-                                isLoading: _authController.isLoading,
+                                isLoading: state.isLoading,
                                 onTap: () async {
                                   if (_formKey.currentState!.validate()) {
                                     final email = _emailController.text.trim();
@@ -255,7 +250,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                     } else {
                                       await Preference.clearRememberedEmail();
                                     }
-                                    await _authController.login(
+                                    await context.read<AuthCubit>().login(
                                       email,
                                       _passwordController.text.trim(),
                                     );
@@ -285,10 +280,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                       fontSize: 15.5,
                                     ),
                                     recognizer: TapGestureRecognizer()
-                                      ..onTap = () => Navigator.pushNamed(
-                                        context,
-                                        SignUpScreen.routePath,
-                                      ),
+                                      ..onTap = () => context.push('/sign-up'),
                                   ),
                                 ],
                               ),
