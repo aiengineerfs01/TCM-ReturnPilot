@@ -55,7 +55,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               children: [
                 AppTopBar(),
                 Expanded(
-                  child: Padding(
+                  child: SingleChildScrollView(
                     padding: const EdgeInsetsDirectional.fromSTEB(
                       21,
                       20,
@@ -153,7 +153,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 _passwordController.text,
                               ),
                         ),
-                        Spacer(),
+                        const SizedBox(height: 30),
                         PrimaryButton(
                           onTap: state.isLoading
                               ? null
@@ -197,7 +197,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     color: theme.appGreen,
                                   ),
                                   recognizer: TapGestureRecognizer()
-                                    ..onTap = () => context.pop(),
+                                    ..onTap = () {
+                                      if (context.canPop()) context.pop();
+                                    },
                                 ),
                               ],
                             ),

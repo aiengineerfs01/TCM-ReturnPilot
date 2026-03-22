@@ -10,7 +10,10 @@ import 'package:tcm_return_pilot/widgets/custom_buttons.dart';
 import 'package:tcm_return_pilot/widgets/safe_pop_scope.dart';
 
 class WelcomeConsentScreen extends StatefulWidget {
-  const WelcomeConsentScreen({super.key});
+  const WelcomeConsentScreen({super.key, this.viewOnly = false});
+
+  /// When true, hides the checkbox and Continue button (read-only mode).
+  final bool viewOnly;
 
   static const String routeName = 'WelcomeConsentScreen';
   static const String routePath = '/welcomeConsent';
@@ -155,61 +158,65 @@ class _WelcomeConsentScreenState extends State<WelcomeConsentScreen> {
                         height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Transform.translate(
-                          offset: const Offset(-8, 0),
-                          child: Checkbox(
-                            value: _consentChecked,
-                            onChanged: (v) =>
-                                setState(() => _consentChecked = v!),
-                            activeColor: theme.primary,
-                            checkColor: Colors.white,
-                            side: BorderSide(
-                              color: theme.secondaryText,
-                              width: 2,
+                    if (!widget.viewOnly) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Transform.translate(
+                            offset: const Offset(-8, 0),
+                            child: Checkbox(
+                              value: _consentChecked,
+                              onChanged: (v) =>
+                                  setState(() => _consentChecked = v!),
+                              activeColor: theme.primary,
+                              checkColor: Colors.white,
+                              side: BorderSide(
+                                color: theme.secondaryText,
+                                width: 2,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
                           ),
-                        ),
 
-                        Text(
-                          'I have read and agree to the consent terms.',
-                          style: poppinsMedium.copyWith(
-                            fontSize: 13,
-                            color: theme.primaryText,
+                          Text(
+                            'I have read and agree to the consent terms.',
+                            style: poppinsMedium.copyWith(
+                              fontSize: 13,
+                              color: theme.primaryText,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
 
-              const SizedBox(height: 40),
+              if (!widget.viewOnly) ...[
+                const SizedBox(height: 40),
 
-              // --- Continue Button ---
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: PrimaryButton(
-                  onTap: _isLoading ? null : _handleContinue,
-                  child: _isLoading
-                      ? const CircularProgressIndicator.adaptive()
-                      : Text(
-                          'Continue →',
-                          style: poppinsMedium.copyWith(
-                            color: Colors.white,
-                            fontSize: 16,
+                // --- Continue Button ---
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: PrimaryButton(
+                    onTap: _isLoading ? null : _handleContinue,
+                    child: _isLoading
+                        ? const CircularProgressIndicator.adaptive()
+                        : Text(
+                            'Continue →',
+                            style: poppinsMedium.copyWith(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
                           ),
-                        ),
+                  ),
                 ),
-              ),
+              ],
               const SizedBox(height: 32),
             ],
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
@@ -120,7 +121,7 @@ class _MFAVerifyPageState extends State<MFAVerifyPage> {
                               decoration: TextDecoration.underline,
                             ),
                             recognizer: TapGestureRecognizer()
-                              ..onTap = () => Navigator.pop(context),
+                              ..onTap = () => context.push('/terms-and-conditions'),
                           ),
                         ],
                       ),

@@ -18,7 +18,7 @@ class AppTopBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
-            onTap: () => BackArrow.safePop(),
+            onTap: () => BackArrow.safePop(context),
             child: Image.asset(Strings.arrowBack, height: 10),
           ),
           const AppLogo(width: 200),

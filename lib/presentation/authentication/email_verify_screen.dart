@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tcm_return_pilot/constants/strings.dart';
 import 'package:tcm_return_pilot/constants/typography.dart';
 import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
 import 'package:tcm_return_pilot/widgets/custom_buttons.dart';
+import 'package:tcm_return_pilot/widgets/solvquest_logo.dart';
 
 class EmailVerifyScreen extends StatelessWidget {
   static const route = '/email/verify';
@@ -12,75 +14,77 @@ class EmailVerifyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = AppTheme.of(context);
+
     return PopScope(
       onPopInvokedWithResult: (didPop, result) => false,
       canPop: false,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.primaryBackground,
         body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Success Icon
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.check_circle_rounded,
-                      color: Colors.green,
-                      size: 80,
-                    ),
-                  ),
+          child: Column(
+            children: [
+              const Spacer(flex: 2),
 
-                  const SizedBox(height: 30),
-
-                  Text(
-                    'Email Verified!',
-                    // style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    //   fontWeight: FontWeight.bold,
-                    // ),
-                    style: theme.headlineSmall.copyWith(
-                      color: theme.appSecondary,
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  Text(
-                    'Your email has been successfully verified. You can now sign in to your account.',
-                    textAlign: TextAlign.center,
-                    style: poppinsMedium.copyWith(
-                      color: theme.accent3,
-                      fontSize: 14,
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  // Login Button
-                  PrimaryButton(
-                    title: 'Sign In',
-                    onTap: () {
-                      context.go('/sign-in');
-                    },
-
-                    child: Text(
-                      'Sign In',
-                      style: poppinsMedium.copyWith(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
+              // Success Shield Icon
+              Image.asset(
+                Strings.identityVerifiedCheck,
+                height: 100,
+                fit: BoxFit.contain,
               ),
-            ),
+
+              const SizedBox(height: 50),
+
+              // Title
+              Text(
+                'Email Verified!',
+                style: poppinsSemiBold.copyWith(
+                  fontSize: 26,
+                  color: theme.primaryText,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 12),
+
+              // Description
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Text(
+                  'Your email has been successfully verified.\nYou can now sign in to your account.',
+                  style: poppinsRegular.copyWith(
+                    fontSize: 15,
+                    color: theme.black1,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+
+              const SizedBox(height: 50),
+
+              // Sign In Button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: PrimaryButton(
+                  onTap: () {
+                    context.go('/sign-in');
+                  },
+                  child: Text(
+                    'Sign In',
+                    style: poppinsMedium.copyWith(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+
+              const Spacer(flex: 3),
+
+              // Solvquest Logo
+              const Center(child: SolvquestLogo(height: 45)),
+
+              const SizedBox(height: 30),
+            ],
           ),
         ),
       ),

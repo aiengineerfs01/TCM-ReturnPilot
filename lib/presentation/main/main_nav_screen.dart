@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tcm_return_pilot/constants/strings.dart';
-import 'package:tcm_return_pilot/constants/typography.dart';
-import 'package:tcm_return_pilot/domain/theme/app_theme.dart';
 import 'package:tcm_return_pilot/presentation/main/cubit/main_nav_cubit.dart';
 import 'package:tcm_return_pilot/presentation/main/tabs/home_tab.dart';
 import 'package:tcm_return_pilot/presentation/main/tabs/documents_tab.dart';
-import 'package:tcm_return_pilot/presentation/main/tabs/interview_tab.dart';
 import 'package:tcm_return_pilot/presentation/main/tabs/support_tab.dart';
 import 'package:tcm_return_pilot/presentation/main/tabs/settings_tab.dart';
 
@@ -23,104 +20,128 @@ class MainNavScreen extends StatefulWidget {
 }
 
 class _MainNavScreenState extends State<MainNavScreen> {
-  /// List of tab screens
   final List<Widget> _tabs = const [
     HomeTab(),
     DocumentsTab(),
-    InterviewTab(),
     SupportTab(),
     SettingsTab(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final theme = AppTheme.of(context);
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackground,
       body: BlocBuilder<MainNavCubit, MainNavState>(
-        builder: (context, state) => IndexedStack(index: state.currentIndex, children: _tabs),
+        builder: (context, state) =>
+            IndexedStack(index: state.currentIndex, children: _tabs),
       ),
       bottomNavigationBar: BlocBuilder<MainNavCubit, MainNavState>(
         builder: (context, state) => Container(
-          decoration: const BoxDecoration(color: Color(0xFF0B2D6C)),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10, left: 6, right: 6),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildNavItem(
+          height: 75,
+          color: const Color(0xFF0B2D6C),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _NavItem(
                     icon: Strings.homeIcon,
                     label: 'Home',
-                    index: MainNavCubit.homeTab,
-                    currentIndex: state.currentIndex,
+                    isSelected: state.currentIndex == MainNavCubit.homeTab,
+                    onTap: () => context
+                        .read<MainNavCubit>()
+                        .changeTab(MainNavCubit.homeTab),
                   ),
-                  _buildNavItem(
+                ),
+                Expanded(
+                  child: _NavItem(
                     icon: Strings.documentsIcon,
-                    label: 'Documents',
-                    index: MainNavCubit.documentsTab,
-                    currentIndex: state.currentIndex,
+                    label: 'Tax Documents',
+                    isSelected:
+                        state.currentIndex == MainNavCubit.documentsTab,
+                    onTap: () => context
+                        .read<MainNavCubit>()
+                        .changeTab(MainNavCubit.documentsTab),
                   ),
-                  _buildNavItem(
-                    icon: Strings.documentsIcon,
-                    label: 'Interview',
-                    index: MainNavCubit.interviewTab,
-                    currentIndex: state.currentIndex,
-                  ),
-                  _buildNavItem(
+                ),
+                Expanded(
+                  child: _NavItem(
                     icon: Strings.supportIcon,
                     label: 'Support',
-                    index: MainNavCubit.supportTab,
-                    currentIndex: state.currentIndex,
+                    isSelected:
+                        state.currentIndex == MainNavCubit.supportTab,
+                    onTap: () => context
+                        .read<MainNavCubit>()
+                        .changeTab(MainNavCubit.supportTab),
                   ),
-                  _buildNavItem(
+                ),
+                Expanded(
+                  child: _NavItem(
                     icon: Strings.settingsIcon,
                     label: 'Settings',
-                    index: MainNavCubit.settingsTab,
-                    currentIndex: state.currentIndex,
+                    isSelected:
+                        state.currentIndex == MainNavCubit.settingsTab,
+                    onTap: () => context
+                        .read<MainNavCubit>()
+                        .changeTab(MainNavCubit.settingsTab),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildNavItem({
-    // required IconData icon,
-    // required IconData activeIcon,
-    required String icon,
-    required String label,
-    required int index,
-    required int currentIndex,
-  }) {
-    final isSelected = currentIndex == index;
-    // Active: teal/green (#5CC1B4), Inactive: white
-    final color = isSelected ? const Color(0xFF5CC1B4) : Colors.white;
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
 
-    return InkWell(
-      onTap: () => context.read<MainNavCubit>().changeTab(index),
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            //Icon(isSelected ? activeIcon : icon, color: color, size: 26),
-            Image.asset(
-              icon,
-              height: 26,
-              color: isSelected ? const Color(0xFF5CC1B4) : Colors.white,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: poppinsMedium.copyWith(fontSize: 12, color: color),
-            ),
-          ],
+  final String icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isSelected ? const Color(0xFF00A38C) : Colors.white;
+    final opacity = isSelected ? 1.0 : 0.7;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Opacity(
+        opacity: opacity,
+        child: SizedBox(
+          height: 75,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                icon,
+                height: 24,
+                width: 24,
+                color: color,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w500,
+                  fontSize: 10,
+                  height: 18 / 10,
+                  letterSpacing: -0.165,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

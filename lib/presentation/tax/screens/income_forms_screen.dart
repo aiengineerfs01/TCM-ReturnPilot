@@ -700,7 +700,7 @@ class IncomeFormsScreen extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         onTap: () {
-          Navigator.pop(context);
+          if (Navigator.canPop(context)) Navigator.pop(context);
           context.push('/form-1099', extra: {'type': type});
         },
         leading: Container(

@@ -12,6 +12,8 @@ class Strings {
 
   /// SVGS Assets
   static const String returnPilotLogo = 'assets/svgs/return_pilot_logo.svg';
+  static const String returnPilotLogoPng = 'assets/images/return_pilot_logo.png';
+  static const String returnPilotLogoBluePng = 'assets/images/return_pilot_logo_blue.png';
 
   /// Onboarding Screen Assets
   static const String onboardingOne = 'assets/images/onboarding1.png';
@@ -33,6 +35,13 @@ class Strings {
   static const String verificationProgress =
       'assets/images/verification_progress.png';
   static const String identityVerified = 'assets/images/identity_verified.png';
+  static const String identityVerifiedCheck = 'assets/images/check_icon.png';
+
+  /// Document Screen Assets
+  static const String uploadFileIcon = 'assets/icons/upload_file.png';
+  static const String pendingIcon = 'assets/svgs/pending.svg';
+  static const String uploadedIcon = 'assets/svgs/uploaded.svg';
+  static const String failedIcon = 'assets/svgs/failed.svg';
 
   /// Bottom Navigation Bar Assets
   static const String homeIcon = 'assets/icons/home_icon.png';

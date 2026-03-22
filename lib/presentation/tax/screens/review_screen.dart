@@ -477,7 +477,7 @@ class ReviewScreen extends StatelessWidget {
               backgroundColor: hasErrors ? theme.secondaryText : theme.primary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(5),
               ),
             ),
             child: Row(

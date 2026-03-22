@@ -83,7 +83,7 @@ abstract class AppTheme {
           backgroundColor: colors.primary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(5),
           ),
         ),
       ),
@@ -155,7 +155,7 @@ abstract class AppTheme {
           backgroundColor: colors.primary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(5),
           ),
         ),
       ),

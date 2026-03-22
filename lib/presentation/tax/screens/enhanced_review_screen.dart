@@ -1477,7 +1477,7 @@ class _EnhancedReviewScreenState extends State<EnhancedReviewScreen>
           backgroundColor: canSubmit ? theme.primary : theme.secondaryText,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(5),
           ),
         ),
         child: Row(

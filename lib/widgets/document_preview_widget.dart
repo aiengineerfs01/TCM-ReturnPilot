@@ -151,7 +151,7 @@ class FilePreviewWidget extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.secondaryBackground,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: theme.appGreen, width: 1.5),
         boxShadow: [
@@ -264,7 +264,7 @@ class SelfiePreviewWidget extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.secondaryBackground,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: theme.appGreen, width: 1.5),
         boxShadow: [

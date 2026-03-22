@@ -139,7 +139,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       if (currentSession != null) {
         emit(state.copyWith(user: currentSession.user));
-        await handlePostMfa();
+        await handlePostLogin();
       } else {
         _navigate(_onboarding);
       }
@@ -540,32 +540,36 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       emit(state.copyWith(isLoading: true));
 
-      final model = await getVerificationStatus();
-      if (model == null) {
+      final user = _supabaseClient.auth.currentUser;
+      if (user == null) {
+        _navigate(_signIn);
+        return;
+      }
+
+      // Read from profiles table (source of truth for verification status)
+      final profiles = await _supabaseService.getData(
+        table: SupabaseTable.profiles,
+        column: 'id',
+        value: user.id,
+      );
+
+      if (profiles.isEmpty) {
         _showError('Unable to fetch verification status.');
         return;
       }
 
-      switch (model.status) {
+      final ProfileModel profile = ProfileModel.fromJson(profiles[0]);
+
+      switch (profile.identityVerificationStatus) {
         case IdentityVerificationStatus.pending:
           _showSuccess('Still under review. Please check back later.');
           break;
 
         case IdentityVerificationStatus.approved:
-          final profiles = await _supabaseService.getData(
-            table: SupabaseTable.profiles,
-            column: 'id',
-            value: currentUser?.id,
-          );
-          if (profiles.isNotEmpty) {
-            final ProfileModel profile = ProfileModel.fromJson(profiles[0]);
-            if (profile.checkedConsent == true) {
-              _navigate(_main);
-            } else {
-              _navigate(_welcomeConsent);
-            }
-          } else {
+          if (profile.checkedConsent == true) {
             _navigate(_main);
+          } else {
+            _navigate(_welcomeConsent);
           }
           break;
 

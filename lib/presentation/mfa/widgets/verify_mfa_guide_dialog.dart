@@ -64,7 +64,7 @@ class _VerifyMFAGuideDialogState extends State<VerifyMFAGuideDialog> {
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                   backgroundColor: AppTheme.of(context).primary,
                   padding: const EdgeInsets.symmetric(

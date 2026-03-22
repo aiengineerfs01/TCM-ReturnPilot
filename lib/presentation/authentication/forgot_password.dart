@@ -161,7 +161,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                     color: theme.appGreen,
                                   ),
                                   recognizer: TapGestureRecognizer()
-                                    ..onTap = () => context.pop(),
+                                    ..onTap = () {
+                                      if (context.canPop()) context.pop();
+                                    },
                                 ),
                               ],
                             ),

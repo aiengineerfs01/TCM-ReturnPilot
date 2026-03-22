@@ -23,6 +23,9 @@ import 'package:tcm_return_pilot/presentation/authentication/welcome_consent_scr
 import 'package:tcm_return_pilot/presentation/main/main_nav_screen.dart';
 import 'package:tcm_return_pilot/presentation/home/home_screen.dart';
 import 'package:tcm_return_pilot/presentation/interview/interview_screen.dart';
+import 'package:tcm_return_pilot/presentation/interview/interview_welcome_screen.dart';
+import 'package:tcm_return_pilot/presentation/interview/before_we_begin_screen.dart';
+import 'package:tcm_return_pilot/presentation/interview/return_year_selection_screen.dart';
 import 'package:tcm_return_pilot/presentation/tax/screens/tax_dashboard_screen.dart';
 import 'package:tcm_return_pilot/presentation/tax/screens/income_forms_screen.dart';
 import 'package:tcm_return_pilot/presentation/tax/screens/w2_form_screen.dart';
@@ -76,8 +79,12 @@ class AppRouter {
     _goRoute('/verification-rejected', const VerificationRejectedScreen()),
     _goRoute('/identity-verified', const IdentityVerifiedScreen()),
     _goRoute('/welcome-consent', const WelcomeConsentScreen()),
+    _goRoute('/terms-and-conditions', const WelcomeConsentScreen(viewOnly: true)),
     _goRoute('/main', const MainNavScreen()),
     _goRoute('/home', const HomeScreen()),
+    _goRoute('/return-year-selection', const ReturnYearSelectionScreen()),
+    _goRoute('/interview-welcome', const InterviewWelcomeScreen()),
+    _goRoute('/before-we-begin', const BeforeWeBeginScreen()),
     _goRoute('/interview', const InterviewScreen()),
     _goRoute('/tax-dashboard', const TaxDashboardScreen()),
     _goRoute('/income-forms', const IncomeFormsScreen()),

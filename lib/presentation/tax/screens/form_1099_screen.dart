@@ -737,7 +737,7 @@ class _Form1099ScreenState extends State<Form1099Screen> {
             backgroundColor: theme.primary,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(5),
             ),
           ),
           child: state.isLoading
@@ -765,7 +765,7 @@ class _Form1099ScreenState extends State<Form1099Screen> {
     // TODO: Implement proper save methods in controller for each 1099 type
 
     if (mounted) {
-      context.pop();
+      if (context.canPop()) context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

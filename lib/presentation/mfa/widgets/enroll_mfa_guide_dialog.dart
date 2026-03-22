@@ -93,7 +93,7 @@ class _EnrollMfaGuideDialogState extends State<EnrollMfaGuideDialog> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.of(context).primary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(5),
                 ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,

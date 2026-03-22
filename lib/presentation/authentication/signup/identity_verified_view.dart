@@ -25,8 +25,8 @@ class IdentityVerifiedScreen extends StatelessWidget {
 
             // Success Shield Icon
             Image.asset(
-              Strings.identityVerified,
-              height: 174,
+              Strings.identityVerifiedCheck,
+              height: 100,
               fit: BoxFit.contain,
             ),
 

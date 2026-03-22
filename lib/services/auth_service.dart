@@ -17,6 +17,12 @@ class AuthService {
       if (response.user == null) {
         throw AuthException('Signup failed. Please try again.');
       }
+      // Supabase returns a user with empty identities for duplicate emails
+      // (to prevent email enumeration). Detect and treat as error.
+      if (response.user!.identities == null ||
+          response.user!.identities!.isEmpty) {
+        throw AuthException('user already registered');
+      }
       return response;
     } on AuthException catch (e) {
       throw Exception(_handleAuthError(e));

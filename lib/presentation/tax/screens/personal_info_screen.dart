@@ -679,7 +679,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
           backgroundColor: theme.primary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(5),
           ),
         ),
         child: Text(

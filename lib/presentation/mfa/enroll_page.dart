@@ -38,6 +38,21 @@ class _MFAEnrollPageState extends State<MFAEnrollPage> {
   final AuthService _authService = AuthService();
   final TextEditingController _pinController = TextEditingController();
 
+  bool _pinComplete = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _pinController.addListener(() {
+      final complete = _pinController.text.length == 6;
+      if (complete != _pinComplete) {
+        setState(() {
+          _pinComplete = complete;
+        });
+      }
+    });
+  }
+
   @override
   void dispose() {
     _pinController.dispose();
@@ -113,7 +128,7 @@ class _MFAEnrollPageState extends State<MFAEnrollPage> {
                                 vertical: 10,
                               ),
                               decoration: BoxDecoration(
-                                color: Color(0xFFDEDEDE),
+                                color: theme.secondaryBackground,
                                 borderRadius: BorderRadius.circular(13),
                               ),
                               child: Row(
@@ -123,7 +138,7 @@ class _MFAEnrollPageState extends State<MFAEnrollPage> {
                                       secret ?? '',
                                       style: poppinsRegular.copyWith(
                                         fontSize: 15,
-                                        color: theme.black1,
+                                        color: theme.primaryText,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -182,7 +197,7 @@ class _MFAEnrollPageState extends State<MFAEnrollPage> {
                             ),
                             const SizedBox(height: 35),
                             PrimaryButton(
-                              onTap: _pinController.text.length < 6
+                              onTap: !_pinComplete
                                   ? null
                                   : () async {
                                       await _authService.verifyMfa(
@@ -209,7 +224,7 @@ class _MFAEnrollPageState extends State<MFAEnrollPage> {
 
                   const SizedBox(height: 20),
 
-                  Spacer(),
+                  //Spacer(),
 
                   Center(child: SolvquestLogo(height: 45)),
                   const SizedBox(height: 30),

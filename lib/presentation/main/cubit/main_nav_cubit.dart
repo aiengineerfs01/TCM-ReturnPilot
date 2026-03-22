@@ -32,14 +32,13 @@ class MainNavCubit extends Cubit<MainNavState> {
   MainNavCubit() : super(const MainNavState());
 
   // ---------------------------------------------------------------------------
-  // Tab Indices
+  // Tab Indices (4 tabs: Home, Documents, Support, Settings)
   // ---------------------------------------------------------------------------
 
   static const int homeTab = 0;
   static const int documentsTab = 1;
-  static const int interviewTab = 2;
-  static const int supportTab = 3;
-  static const int settingsTab = 4;
+  static const int supportTab = 2;
+  static const int settingsTab = 3;
 
   // ---------------------------------------------------------------------------
   // Methods
@@ -53,7 +52,6 @@ class MainNavCubit extends Cubit<MainNavState> {
   /// Navigate to a specific tab by name
   void navigateToHome() => changeTab(homeTab);
   void navigateToDocuments() => changeTab(documentsTab);
-  void navigateToInterview() => changeTab(interviewTab);
   void navigateToSupport() => changeTab(supportTab);
   void navigateToSettings() => changeTab(settingsTab);
 

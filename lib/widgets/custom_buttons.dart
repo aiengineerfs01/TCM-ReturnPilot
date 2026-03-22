@@ -30,7 +30,7 @@ class PrimaryButton extends StatelessWidget {
     this.child,
     this.width = double.infinity,
     this.height = 50,
-    this.borderRadius = 25,
+    this.borderRadius = 5,
     this.isLoading = false,
   });
 
@@ -87,7 +87,7 @@ class SecondaryButton extends StatelessWidget {
     this.borderColor = AppColors.primaryColor,
     this.onTap,
     this.width = double.infinity,
-    this.borderRadius = 8,
+    this.borderRadius = 5,
     this.disabledColor = AppColors.lightGrey,
     this.disabledTextColor = AppColors.primaryColor,
   });

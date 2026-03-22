@@ -149,6 +149,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   onTap: () {
                     if (_pageController.page == onboardingImages.length - 1) {
                       context.push('/sign-in');
+                      //context.push('/identity-verified');
                     } else {
                       _pageController.nextPage(
                         duration: const Duration(milliseconds: 500),

@@ -476,7 +476,7 @@ class _W2FormScreenState extends State<W2FormScreen> {
             backgroundColor: theme.primary,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(5),
             ),
           ),
           child: state.isLoading
@@ -533,7 +533,7 @@ class _W2FormScreenState extends State<W2FormScreen> {
     }
 
     if (mounted) {
-      context.pop();
+      if (context.canPop()) context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

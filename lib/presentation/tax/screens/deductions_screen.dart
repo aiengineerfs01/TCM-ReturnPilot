@@ -619,7 +619,7 @@ class _DeductionsScreenState extends State<DeductionsScreen> {
           backgroundColor: theme.primary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(5),
           ),
         ),
         child: Text(
@@ -634,7 +634,7 @@ class _DeductionsScreenState extends State<DeductionsScreen> {
     // TODO: Save deductions to database via controller
 
     if (mounted) {
-      context.pop();
+      if (context.canPop()) context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Deductions saved'),

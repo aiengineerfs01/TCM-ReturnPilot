@@ -166,7 +166,6 @@ class IdentityVerificationService {
       'submitted_at': DateTime.now().toIso8601String(),
     };
 
-    // Upsert - insert or update if exists
     await _client
         .from(SupabaseTable.identity_verifications.name)
         .upsert(data, onConflict: 'user_id');
